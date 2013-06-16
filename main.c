@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define UNIT 10
+#define UNIT 1024
 
 /* list all tasks */
 void ls_tasks(todo_t *);
