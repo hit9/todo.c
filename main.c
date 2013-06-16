@@ -1,10 +1,19 @@
 #include "buffer.h"
 #include "todo.h"
+#include "utils.h"
 #include "parser.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define UNIT 10
+
+/* list all tasks */
+void ls_tasks(todo_t *);
+
+/* print single task */
+void print_task(task_t *, int);
+
 
 int main(int argc, const char *argv[])
 {
@@ -24,13 +33,40 @@ int main(int argc, const char *argv[])
 
     todo_t *td = todo_new();
     todo_parse(td, buf->data, buf->size);
+    ls_tasks(td);
+    buf_free(buf);
+    return 0;
+}
+
+
+void
+ls_tasks(todo_t *td)
+{
+
     task_t *t;
     int i;
 
     for (i=0, t=td->head; t; t=t->next, i++) {
-        printf("%d. %s  %.*s\n", i, t->state == done ? "✓": "✖", t->c_size, t->content);
+        print_task(t, i);
     }
+}
 
-    buf_free(buf);
-    return 0;
+
+void
+print_task(task_t *t, int id)
+{
+
+    int color = t->state == done ? green : red;  // get state color
+
+    /* get state mark */
+    uint8_t *a = "✓";
+    uint8_t *b = "✖";
+
+    size_t a_size = strlen(a);
+    size_t b_size = strlen(b);
+    size_t max_size = a_size > b_size ? a_size : b_size;
+
+    printf("%d. ", id);  // printf id
+    printf("%s ", colored(t->state == done ? a : b, max_size, color));  //printf task's state
+    printf("%.*s\n", t->c_size, t->content);  //printf task's content
 }

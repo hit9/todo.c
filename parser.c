@@ -23,13 +23,12 @@ _is_space(uint8_t chr)
 void
 todo_parse(todo_t *td, uint8_t *str, size_t size)
 {
-    task_t *tk;
     int state;
     uint8_t *content;
     size_t c_size;
 
 
-    if (!size) return;
+    if (!size) return;  /* nothing to parse */
 
     /* starting parser */
 
@@ -38,11 +37,11 @@ todo_parse(todo_t *td, uint8_t *str, size_t size)
     while (_is_space(*c)) c++; /* allow spaces */
 
     /* starts with '-' */
-    assert(*c == '-'  && _is_space(*++c));
+    assert(*c == '-' && _is_space(*++c));
 
     while (_is_space(*c)) c++;
 
-    /* starts state */
+    /* starting to parse state */
     assert(*c++ == '[');
 
     while (_is_space(*c)) c++;
@@ -55,19 +54,20 @@ todo_parse(todo_t *td, uint8_t *str, size_t size)
 
     assert(*c++ == ']');
 
+    /* starting to parse content */
     while (_is_space(*c)) c++;
 
     content = c;
 
-    while (*c != '\n') c++; /* one task, one line */
+    /* one task, one line */
+    while (*c != '\n') c++;
 
     c_size = c - content;
 
     /* append this task to todo */
-    tk = task_new(content, c_size, state);
-    todo_append(td, tk);
+    todo_append(td, task_new(content, c_size, state));
 
     /* parse the rest str */
-    c++;
+    c++;  //skip '\n'
     todo_parse(td, c, size - (c-str));
 }
