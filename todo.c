@@ -1,8 +1,9 @@
 #include "todo.h"
 #include <stdlib.h>
 
+/* return an empty todo */
 todo_t *
-todo_new()  /* return an empty todo */
+todo_new()
 {
     todo_t *td = (todo_t *)malloc(sizeof(todo_t));
 
@@ -14,8 +15,9 @@ todo_new()  /* return an empty todo */
 }
 
 
+/* return todo's task count */
 size_t
-todo_size(todo_t *td) /* return todo's task count */
+todo_size(todo_t *td)
 {
     size_t i;
     task_t *t;
@@ -26,8 +28,9 @@ todo_size(todo_t *td) /* return todo's task count */
 }
 
 
+/* return an task */
 task_t *
-task_new(uint8_t *content, size_t content_size) /* return an task */
+task_new(uint8_t *content, size_t content_size)
 {
     task_t *tk = (task_t *)malloc(sizeof(task_t));
 
@@ -42,8 +45,9 @@ task_new(uint8_t *content, size_t content_size) /* return an task */
 }
 
 
+/* append a task to todo list */
 void
-todo_append(todo_t *td, task_t *tk) /* append a task to todo list */
+todo_append(todo_t *td, task_t *tk)
 {
     task_t *t = td->head; /* the head node */
 
@@ -55,8 +59,9 @@ todo_append(todo_t *td, task_t *tk) /* append a task to todo list */
 }
 
 
+/* free all tasks and the todo */
 void
-todo_free(todo_t *td)  /* free all tasks and the todo */
+todo_free(todo_t *td)
 {
     task_t *t = td->head, *next;
 
@@ -74,8 +79,9 @@ todo_free(todo_t *td)  /* free all tasks and the todo */
 }
 
 
+/* get task by position */
 task_t *
-todo_get(todo_t *td, size_t position)  /* get task by position */
+todo_get(todo_t *td, size_t position)
 {
     size_t i;
     task_t *t;

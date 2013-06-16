@@ -22,9 +22,13 @@ typedef struct buffer {
 /*
  * API functions
  */
+/* new a buffer */
+buf_t *buf_new(size_t unit);
 
-buf_t *buf_new(size_t unit);  /* new a buffer */
-int buf_grow(buf_t *buf, size_t target_size);  /* grow up buffer to target size */
-void buf_free(buf_t *buf);  /* release buffer */
+/* grow up buffer to target size */
+int buf_grow(buf_t *buf, size_t target_size);
+
+/* release buffer */
+void buf_free(buf_t *buf);
 
 #endif
