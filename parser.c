@@ -18,16 +18,17 @@ _is_space(uint8_t chr)
  * parse string to todo struct.
  * - [ ] this is a undo task
  * - [x] this is a done task
+ * return 0 for success,  return others for error line number
  */
-void
-todo_parse(todo_t *td, uint8_t *str, size_t size)
+static unsigned int
+todo_parse_line(todo_t *td, uint8_t *str, size_t size, unsigned int line_no)
 {
     int state;
     uint8_t *content;
     size_t c_size;
 
 
-    if (!size) return;  /* nothing to parse */
+    if (!size) return 0;  /* nothing to parse */
 
     /* starting parser */
 
@@ -68,9 +69,19 @@ todo_parse(todo_t *td, uint8_t *str, size_t size)
 
                 /* parse the rest str */
                 c++;  //skip '\n'
-                todo_parse(td, c, size - (c-str));
+
+                return todo_parse_line(td, c, size - (c-str), line_no+1);
             }
 
         }
     }
+
+    return line_no;
+}
+
+
+unsigned int
+todo_parse(todo_t *td, uint8_t *str, size_t size)
+{
+    return todo_parse_line(td, str, size, 1); /* parse from line 1 */
 }

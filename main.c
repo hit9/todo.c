@@ -32,8 +32,11 @@ int main(int argc, const char *argv[])
     }
 
     todo_t *td = todo_new();
-    todo_parse(td, buf->data, buf->size);
-    ls_tasks(td);
+    unsigned int re = todo_parse(td, buf->data, buf->size);
+    if (0 == re) {
+        ls_tasks(td);
+    } else
+        printf("syntax error at line %d", re);
     buf_free(buf);
     return 0;
 }

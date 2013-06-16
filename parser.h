@@ -10,6 +10,8 @@
 #include "todo.h"
 
 /* api */
-void todo_parse(todo_t *, uint8_t *, size_t);
+
+/* parse string to todo struct. */
+unsigned int todo_parse(todo_t *, uint8_t *, size_t);
 
 #endif
