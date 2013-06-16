@@ -73,3 +73,18 @@ todo_free(todo_t *td)  /* free all tasks and the todo */
     /* free todo */
     free(td);
 }
+
+
+task_t *
+todo_get(todo_t *td, size_t position)  /* get task by position */
+{
+    size_t i;
+    task_t *t;
+
+    for (t=td->head, i=0; t; t=t->next, i++) {
+        if (position == i)
+            return t;
+    }
+
+    return 0;  // not found!
+}
