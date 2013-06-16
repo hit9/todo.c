@@ -8,8 +8,8 @@
  * buffer errors
  */
 typedef enum {
-    NO_MEM = -1, /* no memory to alloc */
-    OK = 0,  /* success */
+    BUF_NO_MEM = -1, /* no memory to alloc */
+    BUF_OK = 0,  /* success */
 } buf_error_t;
 
 typedef struct buffer {

@@ -28,10 +28,10 @@ buf_grow(buf_t *buf, size_t target_size)
     assert(buf && buf->unit);  /* assuming buf not NULL and writable */
 
     if (target_size > BUFFER_MAX_ALLOCATE_SIZE) /* over max buffer allocate memory size */
-        return NO_MEM;
+        return BUF_NO_MEM;
 
     if (buf->a_size >= target_size)
-        return OK;
+        return BUF_OK;
 
     size_t sz = 0;
 
@@ -41,11 +41,11 @@ buf_grow(buf_t *buf, size_t target_size)
     uint8_t *new_data = (uint8_t *)realloc(buf->data, sz);
 
     if (!new_data)
-        return NO_MEM;
+        return BUF_NO_MEM;
 
     buf->data = new_data;
     buf->a_size = sz;
-    return OK;
+    return BUF_OK;
 }
 
 /* release buffer's memory */

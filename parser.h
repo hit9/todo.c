@@ -10,7 +10,6 @@
 #include "todo.h"
 
 /* api */
-
 void todo_parse(todo_t *, uint8_t *, size_t);
 
 #endif

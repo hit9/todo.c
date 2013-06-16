@@ -37,37 +37,41 @@ todo_parse(todo_t *td, uint8_t *str, size_t size)
     while (_is_space(*c)) c++; /* allow spaces */
 
     /* starts with '-' */
-    assert(*c == '-' && _is_space(*++c));
+    if (*c == '-' && _is_space(*++c)) {
 
-    while (_is_space(*c)) c++;
-
-    /* starting to parse state */
-    assert(*c++ == '[');
-
-    while (_is_space(*c)) c++;
-
-    if (*c == 'x') {
-        state = done;
-        c++;
         while (_is_space(*c)) c++;
+
+        if (*c++ == '[') {
+
+            while (_is_space(*c)) c++;
+
+            /* starting to parse state */
+            if (*c == 'x') {
+                state = done;
+                c++;
+                while (_is_space(*c)) c++;
+            }
+
+            if (*c++ == ']') {
+                /* starting to parse content */
+
+                while (_is_space(*c)) c++;
+
+                content = c;
+
+                /* one task, one line */
+                while (*c != '\n') c++;
+
+                c_size = c - content;
+
+                /* append this task to todo */
+                todo_append(td, task_new(content, c_size, state));
+
+                /* parse the rest str */
+                c++;  //skip '\n'
+                todo_parse(td, c, size - (c-str));
+            }
+
+        }
     }
-
-    assert(*c++ == ']');
-
-    /* starting to parse content */
-    while (_is_space(*c)) c++;
-
-    content = c;
-
-    /* one task, one line */
-    while (*c != '\n') c++;
-
-    c_size = c - content;
-
-    /* append this task to todo */
-    todo_append(td, task_new(content, c_size, state));
-
-    /* parse the rest str */
-    c++;  //skip '\n'
-    todo_parse(td, c, size - (c-str));
 }
