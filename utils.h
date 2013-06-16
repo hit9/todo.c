@@ -17,5 +17,7 @@ typedef enum {
 
 /* wrap string color */
 uint8_t *colored(uint8_t *str, size_t size, int color);
+/* if a string is a valid integer format */
+int is_int_like(const char * s);
 
 #endif

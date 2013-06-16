@@ -4,6 +4,7 @@
 
 
 #include "utils.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,4 +30,17 @@ colored(uint8_t *str, size_t size, int color)
     sprintf(ret, "%s%dm%.*s%s", prefix, color, size, str, suffix);
 
     return ret;
+}
+
+
+/* determine if a string is numberic */
+
+int
+is_numeric (const char * s)
+{
+    if (s == NULL || *s == '\0' || isspace(*s))
+      return 0;
+    char * p;
+    strtol (s, &p, 0);
+    return *p == '\0';
 }
