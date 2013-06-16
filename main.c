@@ -1,4 +1,6 @@
 #include "buffer.h"
+#include "todo.h"
+#include "parser.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -8,7 +10,7 @@ int main(int argc, const char *argv[])
 {
     FILE *fp;
 
-    if (NULL == (fp = fopen("test", "r")))
+    if (NULL == (fp = fopen("test1", "r")))
         exit(1);
 
     buf_t * buf = buf_new(UNIT);
@@ -20,8 +22,9 @@ int main(int argc, const char *argv[])
         buf_grow(buf, buf->size+UNIT);
     }
 
-    printf("%s", buf->data);
-
+    todo_t *td = todo_new();
+    todo_parse(td, buf->data, buf->size);
+    printf("size:%d\n", todo_size(td));
     buf_free(buf);
     return 0;
 }

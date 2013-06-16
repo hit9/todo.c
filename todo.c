@@ -30,12 +30,12 @@ todo_size(todo_t *td)
 
 /* return an task */
 task_t *
-task_new(uint8_t *content, size_t content_size)
+task_new(uint8_t *content, size_t content_size, int state)
 {
     task_t *tk = (task_t *)malloc(sizeof(task_t));
 
     if (tk) {
-        tk->state = undo;
+        tk->state = state;
         tk->content = content;
         tk->c_size = content_size;
         tk->next = 0;

@@ -24,7 +24,7 @@ typedef struct todo {
 } todo_t;
 
 /* return an **empty** task */
-task_t *task_new(uint8_t *, size_t);
+task_t *task_new(uint8_t *, size_t, int);
 
 /* return an **empty** todo */
 todo_t *todo_new();
