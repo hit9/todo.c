@@ -1,7 +1,6 @@
 #include "parser.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
 /* ***********************
  * helper functions
