@@ -59,7 +59,7 @@ todo_parse(todo_t *td, uint8_t *str, size_t size)
 
     content = c;
 
-    while (*c != '\n') c++;
+    while (*c != '\n') c++; /* one task, one line */
 
     c_size = c - content;
 

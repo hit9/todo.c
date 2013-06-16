@@ -24,7 +24,13 @@ int main(int argc, const char *argv[])
 
     todo_t *td = todo_new();
     todo_parse(td, buf->data, buf->size);
-    printf("size:%d\n", todo_size(td));
+    task_t *t;
+    int i;
+
+    for (i=0, t=td->head; t; t=t->next, i++) {
+        printf("%d. %s  %.*s\n", i, t->state == done ? "✓": "✖", t->c_size, t->content);
+    }
+
     buf_free(buf);
     return 0;
 }
