@@ -60,11 +60,10 @@ todo_free(todo_t *td)  /* free all tasks and the todo */
 {
     task_t *t = td->head, *next;
 
-    while (t){
+    while (t) {
         /* record the next */
         next = t->next;
         /* free current node */
-        free(t->content);
         free(t);
         /* go to next node */
         t = next;
