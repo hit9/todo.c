@@ -36,7 +36,7 @@ colored(uint8_t *str, size_t size, int color)
 /* determine if a string is numberic */
 
 int
-is_numeric (const char * s)
+is_int_like (const char * s)
 {
     if (s == NULL || *s == '\0' || isspace(*s))
       return 0;
