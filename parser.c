@@ -10,7 +10,7 @@
 static int
 _is_space(uint8_t chr)
 {
-    return chr == ' ' || chr == '\t' || chr == '\n';
+    return chr == ' ' || chr == '\t';
 }
 
 
@@ -34,12 +34,17 @@ todo_parse_line(todo_t *td, uint8_t *str, size_t size, unsigned int line_no)
 
     uint8_t *c=str;
 
-    while (_is_space(*c)) c++; /* allow spaces */
+    while (*c == '\n' ||
+            *c == ' ' ||
+            *c == '\t') {
+        if (*c == '\n') line_no++;
+        c++;
+    }
 
     /* starts with '-' */
     if (*c == '-' && _is_space(*++c)) {
 
-        while (_is_space(*c)) c++;
+        while (_is_space(*c)) c++; /* allow spaces */
 
         if (*c++ == '[') {
 
