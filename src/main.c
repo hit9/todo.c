@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <mcheck.h>
 #define UNIT 1024
 
 /* list all tasks */
@@ -17,13 +17,13 @@ void print_task(task_t *, int);
 
 int main(int argc, const char *argv[])
 {
+    mtrace();
     /* read todo.txt */
     FILE *fp;
     buf_t * buf;
     size_t ret;
 
     buf = buf_new(UNIT);
-    buf_grow(buf, UNIT);
 
     //open file
     if (!(fp = fopen("todo.txt", "r"))) {
@@ -31,6 +31,7 @@ int main(int argc, const char *argv[])
         exit(1);
     }
 
+    buf_grow(buf, UNIT);
     // read file
     while (
             (ret = fread(buf->data + buf->size, 1, buf->a_size - buf->size, fp)) > 0
@@ -60,9 +61,9 @@ int main(int argc, const char *argv[])
                 if (*p == '\0') {  // is integer like, idx > 0
                     task_t *tsk = todo_get(td, idx-1);
                     if (tsk)
-                        print_task(tsk, idx-1);
+                        print_task(tsk, idx);
                     else
-                        printf("task #'%d' not found.", idx);
+                        printf("task #'%d' not found", idx);
                 }
                 break;
             }
@@ -71,7 +72,8 @@ int main(int argc, const char *argv[])
     else
         printf("syntax error at line %d", re);
 
-    /* free buffers */
+    /* clean up */
+    todo_free(td);
     buf_free(buf);
 
     return 0;
@@ -106,7 +108,12 @@ print_task(task_t *t, int id)
     size_t b_size = strlen(b);
     size_t max_size = a_size > b_size ? a_size : b_size;
 
+    uint8_t *clr_st = colored(t->state == done ? a : b, max_size, color);
+
     printf("%d. ", id);  // printf id
-    printf("%s ", colored(t->state == done ? a : b, max_size, color));  //printf task's state
+    printf("%s ", clr_st);  //printf task's state
     printf("%.*s\n", t->c_size, t->content);  //printf task's content
+
+    /* free clr_st */
+    free(clr_st);
 }

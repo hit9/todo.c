@@ -33,7 +33,7 @@ buf_grow(buf_t *buf, size_t target_size)
     if (buf->a_size >= target_size)
         return BUF_OK;
 
-    size_t sz = 0;
+    size_t sz = buf->a_size;
 
     while (sz < target_size)
         sz += buf->unit;  /* increase sz by unit size each time, until > target_size */
