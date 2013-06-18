@@ -8,6 +8,10 @@
 #include <string.h>
 #include <mcheck.h>
 #define UNIT 1024
+#define VERSION "0.1.0"
+
+/* show usage */
+void show_help();
 
 /* list all tasks */
 void ls_tasks(todo_t *);
@@ -65,6 +69,14 @@ main(int argc, const char *argv[])
                 } else if(0 == strcmp(argv[1], "-a") ||
                         0 == strcmp(argv[1], "--all")) {
                     ls_tasks(td);
+                    break;
+                } else if (0 == strcmp(argv[1], "-h") ||
+                        0 == strcmp(argv[1], "--help")) {
+                    show_help();
+                    break;
+                } else if (0 == strcmp(argv[1], "-v") ||
+                        0 == strcmp(argv[1], "--version")) {
+                    printf("todo version: %s\n", VERSION);
                     break;
                 }
             case 3:
@@ -143,6 +155,23 @@ main(int argc, const char *argv[])
     return 0;
 }
 
+/* show help message */
+void
+show_help()
+{
+    printf("Usage:\n");
+    printf("  todo [-h|-v|-a]\n");
+    printf("  todo (<id> [done|undo|remove])|<task>...\n");
+    printf("Examples:\n");
+    printf("  add a task       -  todo Go shopping\n");
+    printf("  check a task     -  todo 1 done\n");
+    printf("  undo a task      -  todo 1 undo\n");
+    printf("  remove a task    -  todo 1 remove\n");
+    printf("  list undo tasks  -  todo\n");
+    printf("  list all tasks   -  todo --all\n");
+    printf("  clear all tasks  -  todo clear\n");
+    printf("Have found a bug? Please let me know: nz2324@126.com");
+}
 
 void
 ls_tasks(todo_t *td)
