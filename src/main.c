@@ -51,12 +51,23 @@ void print_task(task_t *, int);
 /* print all undo tasks */
 void ls_undo_tasks(todo_t *);
 
+typedef enum {
+    RE_OK = 0,
+    RE_IO_ERROR = 1,      /* errors in IO*/
+    RE_ID_ERROR = 2,      /* Invalid id */
+    RE_SYNTAX_ERROR = 3,  /* Syntax error */
+} return_codes;
+
+
 /* main: cli interface */
 int
 main(int argc, const char *argv[])
 {
     /* memery trace for memory leaks detection */
     mtrace();
+
+    /* main's return code */
+    int rt = RE_OK;
 
     /*
      * try read file 'todo.txt'
@@ -70,7 +81,7 @@ main(int argc, const char *argv[])
 
     if (!(fp = fopen("todo.txt", "r"))) {
         printf("failed to open file 'todo.txt'");
-        exit(1);
+        exit(RE_IO_ERROR);
     }
 
     /* read file 'todo.txt' */
@@ -152,6 +163,7 @@ main(int argc, const char *argv[])
 
                     } else {  /* failed to get task, tsk is 0*/
                         printf("task '%d' not found", idx);
+                        rt = RE_ID_ERROR;
                     }
 
                 } else
@@ -190,26 +202,31 @@ main(int argc, const char *argv[])
         if (!(fp = fopen("todo.txt", "w"))) {
 
             printf("failed to open 'todo.txt'");
+            rt = RE_IO_ERROR;
 
         } else {
 
-            if (fwrite(ob->data, sizeof(uint8_t), ob->size, fp) < 0 )
+            if (fwrite(ob->data, sizeof(uint8_t), ob->size, fp) < 0 ) {
                 printf("failed to write 'todo.txt'");
+                rt = RE_IO_ERROR;
+            }
 
             fclose(fp);
         }
 
         buf_free(ob);
+
     } else {
         /* error_line > 0, got syntax error in parsing process */
         printf("syntax error at line %d", error_line);
+        rt = RE_SYNTAX_ERROR;
     }
 
     /* clean up allocated memory */
     todo_free(td);
     buf_free(buf);
 
-    return 0;
+    return rt;
 }
 
 /* show help message */
