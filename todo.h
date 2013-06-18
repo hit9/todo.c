@@ -36,6 +36,6 @@ void todo_append(todo_t *, task_t *);
 size_t todo_size(todo_t *);
 
 /* return task by its position in todo list */
-task_t *todo_get(todo_t *, size_t);
+task_t *todo_get(todo_t *, int);
 
 #endif

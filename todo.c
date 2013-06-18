@@ -81,9 +81,9 @@ todo_free(todo_t *td)
 
 /* get task by position */
 task_t *
-todo_get(todo_t *td, size_t position)
+todo_get(todo_t *td, int position)
 {
-    size_t i;
+    int i;
     task_t *t;
 
     for (t=td->head, i=0; t; t=t->next, i++) {

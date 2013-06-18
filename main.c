@@ -17,27 +17,63 @@ void print_task(task_t *, int);
 
 int main(int argc, const char *argv[])
 {
+    /* read todo.txt */
     FILE *fp;
-
-    if (NULL == (fp = fopen("test1", "r")))
-        exit(1);
-
-    buf_t * buf = buf_new(UNIT);
+    buf_t * buf;
     size_t ret;
+
+    buf = buf_new(UNIT);
     buf_grow(buf, UNIT);
 
-    while ((ret = fread(buf->data+buf->size, 1, buf->a_size-buf->size, fp)) > 0) {
-        buf->size += ret;
-        buf_grow(buf, buf->size+UNIT);
+    //open file
+    if (!(fp = fopen("todo.txt", "r"))) {
+        printf("failed to open file 'todo.txt'");
+        exit(1);
     }
 
+    // read file
+    while (
+            (ret = fread(buf->data + buf->size, 1, buf->a_size - buf->size, fp)) > 0
+    ) {
+        buf->size += ret;
+        buf_grow(buf, buf->size + UNIT);
+    }
+
+    // close file
+    fclose(fp);
+
+    /* parse todo */
     todo_t *td = todo_new();
     unsigned int re = todo_parse(td, buf->data, buf->size);
-    if (0 == re) {
-        ls_tasks(td);
-    } else
+
+    if (0 == re) {  // success parsed
+        /* parse arguments */
+        switch (argc) {
+            case 1 :
+                ls_tasks(td);
+                break;
+            case 2 :
+            {
+                char *p;
+                int idx = (int) strtol(argv[1], &p, 10);  // try to convert to integer
+
+                if (*p == '\0') {  // is integer like, idx > 0
+                    task_t *tsk = todo_get(td, idx-1);
+                    if (tsk)
+                        print_task(tsk, idx-1);
+                    else
+                        printf("task #'%d' not found.", idx);
+                }
+                break;
+            }
+        }
+    }
+    else
         printf("syntax error at line %d", re);
+
+    /* free buffers */
     buf_free(buf);
+
     return 0;
 }
 
@@ -49,12 +85,13 @@ ls_tasks(todo_t *td)
     task_t *t;
     int i;
 
-    for (i=0, t=td->head; t; t=t->next, i++) {
+    for (i=1, t=td->head; t; t=t->next, i++) {
         print_task(t, i);
     }
 }
 
 
+/* print single task, the id is 1, 2, 3... (start from 1) */
 void
 print_task(task_t *t, int id)
 {
