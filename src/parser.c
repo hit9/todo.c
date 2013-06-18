@@ -23,7 +23,7 @@ _is_space(uint8_t chr)
 static unsigned int
 todo_parse_line(todo_t *td, uint8_t *str, size_t size, unsigned int line_no)
 {
-    int state;
+    int state = undo;  // default: undo
     uint8_t *content;
     size_t c_size;
 

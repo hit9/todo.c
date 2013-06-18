@@ -15,6 +15,9 @@ void ls_tasks(todo_t *);
 /* print single task */
 void print_task(task_t *, int);
 
+/* print all undo tasks */
+void ls_undo_tasks(todo_t *);
+
 
 int
 main(int argc, const char *argv[])
@@ -52,9 +55,18 @@ main(int argc, const char *argv[])
         /* parse arguments */
         switch (argc) {
             case 1:
-                ls_tasks(td);
+                ls_undo_tasks(td);
                 break;
             case 2:
+                if (0 == strcmp(argv[1], "clear")) {
+                    // clear todo
+                    todo_clear(td);
+                    break;
+                } else if(0 == strcmp(argv[1], "-a") ||
+                        0 == strcmp(argv[1], "--all")) {
+                    ls_tasks(td);
+                    break;
+                }
             case 3:
             {
                 // check if the  argv[1] is a integer
@@ -64,7 +76,9 @@ main(int argc, const char *argv[])
                 if (*p == '\0') {  // is integer like, idx > 0
                     // fetch this task out
                     task_t *tsk = todo_get(td, idx-1);
+
                     if (tsk) { // the task is avliable
+
                         if (argc == 2)  // means query task
                             print_task(tsk, idx);
                         else if (argc == 3) { // check or remove the task
@@ -78,13 +92,12 @@ main(int argc, const char *argv[])
                             else
                                 goto add_task;
                         }
+
                     }
                     else
                         printf("task '%d' not found", idx);
+
                 }
-                else if (argc == 2 && 0 == strcmp(argv[1], "clear"))
-                    // clear todo
-                    todo_clear(td);
                 else
                     goto add_task;
                 break;
@@ -92,8 +105,16 @@ main(int argc, const char *argv[])
             // add as todo
         add_task:
             default:
-                printf("add task");
+            {
+                buf_t *buf = buf_new(64);  // new a buffer to store arguments
+                space_join(
+                        (uint8_t **)(argv+1), // throw away the first argv
+                        argc-1,  // the arr long is now argc-1
+                        buf); //join argvs to buffer with " "
+                task_t *new_tsk = task_new(buf->data, buf->size, undo);
+                todo_append(td, new_tsk);
                 break;
+            }
         }
 
         /* generate to str */
@@ -132,6 +153,19 @@ ls_tasks(todo_t *td)
 
     for (i=1, t=td->head; t; t=t->next, i++) {
         print_task(t, i);
+    }
+}
+
+void
+ls_undo_tasks(todo_t *td)
+{
+
+    task_t *t;
+    int i;
+
+    for (i=1, t=td->head; t; t=t->next, i++) {
+        if (t->state == undo)
+            print_task(t, i);
     }
 }
 
