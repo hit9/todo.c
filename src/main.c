@@ -51,23 +51,49 @@ main(int argc, const char *argv[])
     if (0 == re) {  // success parsed
         /* parse arguments */
         switch (argc) {
-            case 1 :
+            case 1:
                 ls_tasks(td);
                 break;
-            case 2 :
+            case 2:
+            case 3:
             {
+                // check if the  argv[1] is a integer
                 char *p;
                 int idx = (int) strtol(argv[1], &p, 10);  // try to convert to integer
 
                 if (*p == '\0') {  // is integer like, idx > 0
+                    // fetch this task out
                     task_t *tsk = todo_get(td, idx-1);
-                    if (tsk)
-                        print_task(tsk, idx);
+                    if (tsk) { // the task is avliable
+                        if (argc == 2)  // means query task
+                            print_task(tsk, idx);
+                        else if (argc == 3) { // check or remove the task
+                            /* check task done */
+                            if (0 == strcmp(argv[2], "done")) tsk->state = done;
+                            /* check task undo */
+                            else if (0 == strcmp(argv[2], "undo")) tsk->state = undo;
+                            /* remove task */
+                            else if (0 == strcmp(argv[2], "remove")) todo_pop(td, tsk);
+                            /* as a task */
+                            else
+                                goto add_task;
+                        }
+                    }
                     else
                         printf("task '%d' not found", idx);
                 }
+                else if (argc == 2 && 0 == strcmp(argv[1], "clear"))
+                    // clear todo
+                    todo_clear(td);
+                else
+                    goto add_task;
                 break;
             }
+            // add as todo
+        add_task:
+            default:
+                printf("add task");
+                break;
         }
 
         /* generate to str */

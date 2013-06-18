@@ -38,4 +38,11 @@ size_t todo_size(todo_t *);
 /* return task by its position in todo list */
 task_t *todo_get(todo_t *, int);
 
+/* pop task out */
+int todo_pop(todo_t *, task_t *);
+
+/* clear todo list */
+void
+todo_clear(todo_t *td);
+
 #endif

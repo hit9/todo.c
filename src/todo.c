@@ -93,3 +93,37 @@ todo_get(todo_t *td, int position)
 
     return 0;  // not found!
 }
+
+/* pop task, return 0 is ok*/
+int
+todo_pop(todo_t *td, task_t *tk)
+{
+    task_t *head = td->head, *t;
+
+    if (tk == head){ //if pop node is the head node
+        td->head = head->next;
+        free(head);
+        return 0;
+    }
+
+    for (t=head; t->next != tk; t = t->next); //else goto the pop node's pre node
+
+    t->next = tk->next;
+    free(tk);
+}
+
+void
+todo_clear(todo_t *td)
+{
+    task_t *t = td->head, *next;
+
+    // free all nodes
+    while (t) {
+        next = t->next;
+        free(t);
+        t = next;
+    }
+
+    // point head to null
+    td->head = 0;
+}
