@@ -3,6 +3,7 @@ SRC=src/*.c
 
 all:
 	cc ${SRC} -o todo -I${INC_DIR}
+	./todo
 
 test:
 	cc ${SRC} -o todo -g -I${INC_DIR}

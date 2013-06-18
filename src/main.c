@@ -2,6 +2,7 @@
 #include "todo.h"
 #include "utils.h"
 #include "parser.h"
+#include "generator.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,7 +16,8 @@ void ls_tasks(todo_t *);
 void print_task(task_t *, int);
 
 
-int main(int argc, const char *argv[])
+int
+main(int argc, const char *argv[])
 {
     mtrace();
     /* read todo.txt */
@@ -34,13 +36,12 @@ int main(int argc, const char *argv[])
     buf_grow(buf, UNIT);
     // read file
     while (
-            (ret = fread(buf->data + buf->size, 1, buf->a_size - buf->size, fp)) > 0
+            (ret = fread(buf->data + buf->size, sizeof(uint8_t), buf->a_size - buf->size, fp)) > 0
     ) {
         buf->size += ret;
         buf_grow(buf, buf->size + UNIT);
     }
 
-    // close file
     fclose(fp);
 
     /* parse todo */
@@ -63,11 +64,25 @@ int main(int argc, const char *argv[])
                     if (tsk)
                         print_task(tsk, idx);
                     else
-                        printf("task #'%d' not found", idx);
+                        printf("task '%d' not found", idx);
                 }
                 break;
             }
         }
+
+        /* generate to str */
+        buf_t *ob = buf_new(64);
+
+        todo_generate(td, ob);
+
+        if (!(fp=fopen("todo.txt", "w"))) {
+            printf("failed to open 'todo.txt'");
+        } else {
+            if (fwrite(ob->data, sizeof(uint8_t), ob->size, fp) < 0 )
+                printf("failed to write 'todo.txt'");
+            fclose(fp);
+        }
+        buf_free(ob);
     }
     else
         printf("syntax error at line %d", re);
