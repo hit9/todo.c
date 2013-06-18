@@ -102,17 +102,18 @@ main(int argc, const char *argv[])
                     goto add_task;
                 break;
             }
-            // add as todo
+        // add as task
         add_task:
             default:
             {
-                buf_t *buf = buf_new(64);  // new a buffer to store arguments
+                buf_t *c_buf = buf_new(64);  // new a buffer to store arguments
                 space_join(
                         (uint8_t **)(argv+1), // throw away the first argv
                         argc-1,  // the arr long is now argc-1
-                        buf); //join argvs to buffer with " "
-                task_t *new_tsk = task_new(buf->data, buf->size, undo);
+                        c_buf); //join argvs to buffer with " "
+                task_t *new_tsk = task_new(c_buf->data, c_buf->size, undo);
                 todo_append(td, new_tsk);
+                free(c_buf);  // free c_buf struct, buf dont buf_free it, the c_buf->data is freed at todo_free
                 break;
             }
         }
@@ -139,7 +140,6 @@ main(int argc, const char *argv[])
     /* clean up */
     todo_free(td);
     buf_free(buf);
-
     return 0;
 }
 
