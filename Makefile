@@ -14,4 +14,4 @@ clean:
 	rm todo todo.log
 
 install: compile
-	cp ./todo /usr/bin/
+	mv ./todo /usr/bin/
