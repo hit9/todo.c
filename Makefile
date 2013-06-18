@@ -1,9 +1,8 @@
 INC_DIR=src/
 SRC=src/*.c
 
-all:
+compile:
 	cc ${SRC} -o todo -I${INC_DIR}
-	./todo
 
 test:
 	cc ${SRC} -o todo -g -I${INC_DIR}
@@ -13,3 +12,6 @@ test:
 	mtrace todo todo.log
 clean:
 	rm todo todo.log
+
+install: compile
+	cp ./todo /usr/bin/

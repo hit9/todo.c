@@ -34,12 +34,15 @@ todo_parse_line(todo_t *td, uint8_t *str, size_t size, unsigned int line_no)
 
     uint8_t *c=str;
 
+    // skip empty
     while (*c == '\n' ||
             *c == ' ' ||
             *c == '\t') {
         if (*c == '\n') line_no++;
         c++;
     }
+
+    if (*c == '\0') return 0;  // the end of string
 
     /* starts with '-' */
     if (*c == '-' && _is_space(*++c)) {

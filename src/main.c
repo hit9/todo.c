@@ -75,6 +75,7 @@ main(int argc, const char *argv[])
 
         todo_generate(td, ob);
 
+        // write to file
         if (!(fp=fopen("todo.txt", "w"))) {
             printf("failed to open 'todo.txt'");
         } else {
@@ -82,6 +83,7 @@ main(int argc, const char *argv[])
                 printf("failed to write 'todo.txt'");
             fclose(fp);
         }
+
         buf_free(ob);
     }
     else
