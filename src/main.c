@@ -80,7 +80,7 @@ main(int argc, const char *argv[])
     buf = buf_new(UNIT);
 
     if (!(fp = fopen("todo.txt", "r"))) {
-        printf("failed to open file 'todo.txt'");
+        printf("failed to open file 'todo.txt'\n");
         exit(RE_IO_ERROR);
     }
 
@@ -162,7 +162,7 @@ main(int argc, const char *argv[])
                         }
 
                     } else {  /* failed to get task, tsk is 0*/
-                        printf("task '%d' not found", idx);
+                        printf("task '%d' not found\n", idx);
                         rt = RE_ID_ERROR;
                     }
 
@@ -201,13 +201,13 @@ main(int argc, const char *argv[])
 
         if (!(fp = fopen("todo.txt", "w"))) {
 
-            printf("failed to open 'todo.txt'");
+            printf("failed to open 'todo.txt'\n");
             rt = RE_IO_ERROR;
 
         } else {
 
             if (fwrite(ob->data, sizeof(uint8_t), ob->size, fp) < 0 ) {
-                printf("failed to write 'todo.txt'");
+                printf("failed to write 'todo.txt'\n");
                 rt = RE_IO_ERROR;
             }
 
@@ -218,7 +218,7 @@ main(int argc, const char *argv[])
 
     } else {
         /* error_line > 0, got syntax error in parsing process */
-        printf("syntax error at line %d", error_line);
+        printf("syntax error at line %d\n", error_line);
         rt = RE_SYNTAX_ERROR;
     }
 
@@ -244,7 +244,7 @@ show_help()
     printf("  list undo tasks  -  todo\n");
     printf("  list all tasks   -  todo --all\n");
     printf("  clear all tasks  -  todo clear\n");
-    printf("Have found a bug? Please let me know: nz2324@126.com");
+    printf("Have found a bug? Please let me know: https://github.com/hit9/todo.c/issues\n");
 }
 
 /* list all tasks */
