@@ -1,4 +1,33 @@
+/*
+ * Copyright (c) 2013, hit9
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *     * Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice,
+ *       this list of conditions and the following disclaimer in the documentation
+ *       and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
+ * OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+
 #include "todo.h"
+
 #include <stdlib.h>
 
 /* return an empty todo */
@@ -22,7 +51,7 @@ todo_size(todo_t *td)
     size_t i;
     task_t *t;
 
-    for (i=0, t=td->head; t; t=t->next, i++);
+    for (i = 0, t = td->head; t; t = t->next, i++);
 
     return i;
 }
@@ -49,11 +78,13 @@ task_new(uint8_t *content, size_t content_size, int state)
 void
 todo_append(todo_t *td, task_t *tk)
 {
-    task_t *t = td->head; /* the head node */
+    task_t *t = td->head;
 
     if (t) {
-        for (; t->next; t=t->next); /* goto the last node */
-        t->next = tk;  /* append task `tk` */
+        /* goto the last node */
+        for (; t->next; t = t->next);
+        /* append task `tk` */
+        t->next = tk;
     } else  /* else, initialize the head task */
         td->head = tk;
 }
@@ -86,12 +117,12 @@ todo_get(todo_t *td, int position)
     int i;
     task_t *t;
 
-    for (t=td->head, i=0; t; t=t->next, i++) {
+    for (t = td->head, i = 0; t; t = t->next, i++) {
         if (position == i)
             return t;
     }
 
-    return 0;  // not found!
+    return 0;  /* not found! */
 }
 
 /* pop task, return 0 is ok*/
@@ -100,13 +131,13 @@ todo_pop(todo_t *td, task_t *tk)
 {
     task_t *head = td->head, *t;
 
-    if (tk == head){ //if pop node is the head node
+    if (tk == head){ /* if pop node is the head node */
         td->head = head->next;
         free(head);
         return 0;
     }
-
-    for (t=head; t->next != tk; t = t->next); //else goto the pop node's pre node
+    /* else goto the pop node's pre node */
+    for (t = head; t->next != tk; t = t->next);
 
     t->next = tk->next;
     free(tk);
@@ -117,13 +148,13 @@ todo_clear(todo_t *td)
 {
     task_t *t = td->head, *next;
 
-    // free all nodes
+    /* free all nodes */
     while (t) {
         next = t->next;
         free(t);
         t = next;
     }
 
-    // point head to null
+    /* point head to null */
     td->head = 0;
 }

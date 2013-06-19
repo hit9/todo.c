@@ -1,15 +1,46 @@
 /*
- * util functions
+ * Copyright (c) 2013, hit9
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *     * Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice,
+ *       this list of conditions and the following disclaimer in the documentation
+ *       and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
+ * OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+
+/*
+ * utils functions
  */
 
 
 #include "utils.h"
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-/* wrap string color */
+/* wrap string color, remember to release the return string
+ * after write it to stdout
+ */
 uint8_t *
 colored(uint8_t *str, size_t size, int color)
 {
@@ -54,11 +85,11 @@ space_join(uint8_t **arr, size_t len, buf_t *buf)
 
     for (i=0; i < len; i++) {
 
-        str = *(arr+i);
+        str = *(arr + i);
         sz = str_len = strlen(str);
 
-        if (i != len-1)  // not the last
-            sz += 1;
+        /* if not the last array, append a empty space " " */
+        if (i != len-1) sz += 1;
 
         buf_grow(buf, buf->size + sz);
 
@@ -66,8 +97,8 @@ space_join(uint8_t **arr, size_t len, buf_t *buf)
 
         strcpy(p, str);
 
-        if (i != len-1)  // not the last
-            strcpy(p+str_len, " ");
+        /* if not the last array, append a empty space " " */
+        if (i != len-1) strcpy(p + str_len, " ");
 
         buf->size += sz;
     }
