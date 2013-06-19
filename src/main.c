@@ -37,7 +37,7 @@
 #include <mcheck.h>
 
 #define UNIT 1024
-#define VERSION "0.1.0"
+#define VERSION "0.2.0"
 
 /* show usage */
 void show_help();
