@@ -34,10 +34,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <wordexp.h>
 #include <mcheck.h>
 
 #define UNIT 1024
-#define VERSION "0.2.0"
+#define VERSION "0.2.1"
 
 /* show usage */
 void show_help();
@@ -70,21 +72,48 @@ main(int argc, const char *argv[])
     int rt = RE_OK;
 
     /*
-     * try read file 'todo.txt'
+     * use ./todo.txt prior to ~/todo.txt for persistent storage
      */
 
+    /* find path ~/todo.txt */
+    wordexp_t exp_r;
+    wordexp("~/todo.txt", &exp_r, 0);
+    uint8_t *h_todo_txt = exp_r.we_wordv[0];
+
     FILE *fp;
+    uint8_t c_todo_txt[10] = "./todo.txt"; /* current dir todo.txt */
+    uint8_t *todo_txt = 0;
+
+    if (access(c_todo_txt, F_OK) != -1) {
+        /* ./todo.txt exists */
+        todo_txt = c_todo_txt;
+    } else {
+        /* ./todo.txt dosen't exist, use ~/.todo.txt instead */
+        todo_txt = h_todo_txt;
+
+        if (access(todo_txt, F_OK) == -1) {
+            /* the ~/.todo.txt does not exist, new one */
+            fp = fopen(todo_txt, "w");
+            fclose(fp);
+        }
+
+    }
+
+    /*
+     * try read file todo_txt
+     */
+
     buf_t * buf;
     size_t ret;
 
     buf = buf_new(UNIT);
 
-    if (!(fp = fopen("todo.txt", "r"))) {
-        printf("failed to open file 'todo.txt'\n");
+    if (!(fp = fopen(todo_txt, "r"))) {
+        printf("failed to open file '%s'\n", todo_txt);
         exit(RE_IO_ERROR);
     }
 
-    /* read file 'todo.txt' */
+    /* read file todo_txt */
 
     buf_grow(buf, UNIT);
 
@@ -197,17 +226,17 @@ main(int argc, const char *argv[])
 
         todo_generate(td, ob);
 
-        /* write to file todo.txt */
+        /* write to file todo_txt */
 
-        if (!(fp = fopen("todo.txt", "w"))) {
+        if (!(fp = fopen(todo_txt, "w"))) {
 
-            printf("failed to open 'todo.txt'\n");
+            printf("failed to open '%s'\n", todo_txt);
             rt = RE_IO_ERROR;
 
         } else {
 
             if (fwrite(ob->data, sizeof(uint8_t), ob->size, fp) < 0 ) {
-                printf("failed to write 'todo.txt'\n");
+                printf("failed to write '%s'\n", todo_txt);
                 rt = RE_IO_ERROR;
             }
 
@@ -225,7 +254,7 @@ main(int argc, const char *argv[])
     /* clean up allocated memory */
     todo_free(td);
     buf_free(buf);
-
+    wordfree(&exp_r);
     return rt;
 }
 
