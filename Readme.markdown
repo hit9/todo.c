@@ -3,6 +3,8 @@ todo.c
 
 Command line lightweight todo tool with readable storage , written in C
 
+lastest version: v0.2.1
+
 ![](screen-shot.png)
 
 Installation
@@ -15,7 +17,7 @@ This command will install `todo` to `/usr/bin/todo`.
 Usage
 -----
 
-`todo` will always try to find `todo.txt` in current directory.
+*Note*: todo will **always** use `./todo.txt` prior to `~/todo.txt` for persistent storage.
 
 ```
 Usage:
@@ -34,9 +36,13 @@ Examples:
 Storage
 -------
 
-`todo` uses `./todo.txt` for persistent storage.
+todo will always use `./todo.txt` prior to `~/todo.txt` for persistent storage, if there is a `todo.txt` in 
+current directory, `todo` will use it, else `todo` will try to find `~/todo.txt`, if it dosn't exist, `todo`
+touch an empty file `~/todo.txt`.
 
-If you are using `todo` in a "fresh" directory, you need to `touch todo.txt` there.
+So when your are not in home directory, to new a todo, just:
+
+    $ touch todo.txt
 
 The storage format is readable, it's the *GitHub Flavored Markdown Task list* :
 
@@ -49,7 +55,7 @@ FAQ
 ---
 
 - Why C language? - I just want to write some C code that time.
-- Why not `~/todo.txt`? - I need different todos for different projects.
+- Why not only `~/todo.txt`? - I need different todos for different projects.
 - What dose this tool created for? - I can manage tasks in my terminal, and read it anywhere(for instance, on github.com).
 
 License
