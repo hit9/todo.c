@@ -44,7 +44,7 @@ So when your are not in home directory, to new a todo, just:
 
     $ touch todo.txt
 
-The storage format is readable, it's the *GitHub Flavored Markdown Task list* :
+The storage format is readable, it's the [GitHub Flavored Markdown Task list](https://help.github.com/articles/github-flavored-markdown#task-lists):
 
 ```markdown
 - [x] Go shopping
