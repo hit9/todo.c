@@ -58,6 +58,13 @@ FAQ
 - Why not only `~/todo.txt`? - I need different todos for different projects.
 - What dose this tool created for? - I can manage tasks in my terminal, and read it anywhere(for instance, on github.com).
 
+Thanks
+------
+
+- Thanks to sjl, todo is inspired by [sjl/t](http://github.com/sjl/t).
+
+- Thanks to vesln's [todo](https://github.com/vesln/todo).
+
 License
 --------
 
