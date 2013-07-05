@@ -1,0 +1,2 @@
+- [ ] use ~/.todo.txt for home todo
+- [ ] install to ~/.todo but not /usr/bin/todo
