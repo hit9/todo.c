@@ -58,7 +58,7 @@ colored(uint8_t *str, size_t size, int color)
     uint8_t *ret = (uint8_t *)malloc(sz * sizeof(uint8_t));
 
     /* mix them in */
-    sprintf(ret, "%s%dm%.*s%s", prefix, color, size, str, suffix);
+    sprintf(ret, "%s%dm%.*s%s", prefix, color, (int)size, str, suffix);
 
     return ret;
 }

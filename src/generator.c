@@ -50,7 +50,7 @@ todo_generate(todo_t *td, buf_t *buf)
         buf_grow(buf, buf->size + sz);
         /* get current data tail pointer */
         ptr = buf->data + buf->size;
-        sprintf(ptr, "- [%c] %.*s\n", t->state == done ? 'x' : ' ', t->c_size, t->content);
+        sprintf(ptr, "- [%c] %.*s\n", t->state == done ? 'x' : ' ', (int)t->c_size, t->content);
         buf->size += sz;
     }
 }

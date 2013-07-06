@@ -81,7 +81,7 @@ main(int argc, const char *argv[])
     uint8_t *h_todo_txt = exp_r.we_wordv[0];
 
     FILE *fp;
-    uint8_t c_todo_txt[10] = "./todo.txt"; /* current dir todo.txt */
+    uint8_t c_todo_txt[11] = "./todo.txt"; /* current dir todo.txt */
     uint8_t *todo_txt = 0;
 
     if (access(c_todo_txt, F_OK) != -1) {
@@ -322,7 +322,7 @@ print_task(task_t *t, int id)
 
     printf("%d. ", id);
     printf("%s ", clr_st);
-    printf("%.*s\n", t->c_size, t->content);
+    printf("%.*s\n", (int)t->c_size, t->content);
 
     free(clr_st);
 }
