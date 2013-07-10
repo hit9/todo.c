@@ -4,3 +4,4 @@ test*
 main
 todo
 todo.log
+*.o

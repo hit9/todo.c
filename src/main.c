@@ -36,7 +36,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <wordexp.h>
-#include <mcheck.h>
 
 #define UNIT 1024
 #define VERSION "0.2.1"
@@ -65,8 +64,6 @@ typedef enum {
 int
 main(int argc, const char *argv[])
 {
-    /* memery trace for memory leaks detection */
-    mtrace();
 
     /* main's return code */
     int rt = RE_OK;
