@@ -232,7 +232,7 @@ main(int argc, const char *argv[])
 
         } else {
 
-            if (fwrite(ob->data, sizeof(uint8_t), ob->size, fp) < 0 ) {
+            if (fwrite(ob->data, sizeof(uint8_t), ob->size, fp) != ob->size ) {
                 printf("failed to write '%s'\n", todo_txt);
                 rt = RE_IO_ERROR;
             }
