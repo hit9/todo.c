@@ -1,17 +1,15 @@
-INC_DIR=src/
-SRC=src/*.c
-
 compile:
-	cc ${SRC} -o todo -I${INC_DIR}
+	make -C src/
 
 test:
-	cc ${SRC} -o todo -g -I${INC_DIR}
+	make -C src/
 	touch todo.log
-	env MALLOC_TRACE=todo.log ./todo
+	env MALLOC_TRACE=todo.log src/todo
 	@echo "memory leaks check result:"
-	mtrace todo todo.log
+	mtrace src/todo todo.log
 clean:
-	rm todo todo.log
+	make -C src/ clean
+	rm -rf todo todo.log
 
 install: compile
-	mv ./todo /usr/bin/
+	mv src/todo /usr/bin/
