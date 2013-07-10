@@ -13,8 +13,6 @@ CC = gcc
 
 OBJ = $(SRC:c=o)
 
-CFLAGS = -W -Wall -Wextra
-
 $(NAME): $(OBJ)
 	$(CC) $(OBJ) -o $(NAME) -I$(INC)
 
