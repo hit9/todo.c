@@ -148,6 +148,9 @@ main(int argc, const char *argv[])
                 if (0 == strcmp(argv[1], "clear")) { /* clear todo */
                     todo_clear(td);
                     break;
+                } else if (0 == strcmp(argv[1], "cleanup")) { /* remove done tasks */
+                    todo_cleanup(td);
+                    break;
                 } else if(0 == strcmp(argv[1], "-a") ||
                         0 == strcmp(argv[1], "--all")) { /* list all tasks */
                     ls_tasks(td);
@@ -269,6 +272,7 @@ show_help()
     printf("  remove a task    -  todo 1 remove\n");
     printf("  list undo tasks  -  todo\n");
     printf("  list all tasks   -  todo --all\n");
+    printf("  clear done tasks -  todo cleanup\n");
     printf("  clear all tasks  -  todo clear\n");
     printf("Have found a bug? Please let me know: https://github.com/hit9/todo.c/issues\n");
 }

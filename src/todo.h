@@ -76,4 +76,8 @@ int todo_pop(todo_t *, task_t *);
 void
 todo_clear(todo_t *td);
 
+/* remove done tasks from todo list */
+void
+todo_cleanup(todo_t *td);
+
 #endif
