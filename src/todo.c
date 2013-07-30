@@ -158,3 +158,29 @@ todo_clear(todo_t *td)
     /* point head to null */
     td->head = 0;
 }
+
+void
+todo_cleanup(todo_t *td)
+{
+    task_t *t = td->head, *prev = 0;
+
+    while (t) {
+        if (t->state == done) {
+            /* check that we are not removing head */
+            if (prev) {
+                prev->next = t->next;
+                free(t);
+                t = prev->next;
+            } else {
+                /* we are removing head -> set new head */
+                td->head = t->next;
+                free(t);
+                t = td->head;
+            }
+        } else {
+            /* nothing removed, proceed with next task */
+            prev = t;
+            t = t->next;
+        }
+    }
+}
