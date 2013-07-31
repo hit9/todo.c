@@ -3,7 +3,7 @@ todo.c
 
 Command line lightweight todo tool with readable storage , written in C
 
-latest version: v0.2.1
+latest version: v0.2.2
 
 ![](screen-shot.png)
 
@@ -30,6 +30,7 @@ Examples:
   remove a task    -  todo 1 remove
   list undo tasks  -  todo
   list all tasks   -  todo --all
+  clear done tasks -  todo cleanup
   clear all tasks  -  todo clear
 ```
 
