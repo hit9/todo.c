@@ -38,7 +38,7 @@
 #include <wordexp.h>
 
 #define UNIT 1024
-#define VERSION "0.2.2"
+#define VERSION "0.2.3"
 
 /* show usage */
 void show_help();

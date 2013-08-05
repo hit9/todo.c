@@ -3,16 +3,20 @@ todo.c
 
 Command line lightweight todo tool with readable storage , written in C
 
-latest version: v0.2.2
+latest version: v0.2.3
 
 ![](screen-shot.png)
 
 Installation
 ------------
 
-    sudo make install
+    make install
 
-This command will install `todo` to `/usr/bin/todo`.
+This command will install `todo` to `~/.todo`.
+
+Next, add the following line to your shell's configuration(~/.bashrc or ~/.zshrc etc.):
+
+    alias todo=~/.todo
 
 Usage
 -----
