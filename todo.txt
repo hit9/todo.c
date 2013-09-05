@@ -1,2 +1,3 @@
 - [ ] use ~/.todo.txt for home todo
 - [x] install to ~/.todo but not /usr/bin/todo
+- [ ] add unbreak or important task mask
