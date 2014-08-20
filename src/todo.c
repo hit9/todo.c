@@ -34,7 +34,7 @@
 todo_t *
 todo_new()
 {
-    todo_t *td = (todo_t *)malloc(sizeof(todo_t));
+    todo_t *td = malloc(sizeof(todo_t));
 
     if (td) {
         td->head = 0;
@@ -61,7 +61,7 @@ todo_size(todo_t *td)
 task_t *
 task_new(uint8_t *content, size_t content_size, int state)
 {
-    task_t *tk = (task_t *)malloc(sizeof(task_t));
+    task_t *tk = malloc(sizeof(task_t));
 
     if (tk) {
         tk->state = state;
