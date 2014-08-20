@@ -10,6 +10,6 @@ install: compile
 	@echo "  alias todo=~/.todo"
 
 uninstall:
-	rm -fr ~/.todo
+	rm -f ~/.todo
 	@echo "You can now delete this line from your configuration (~/.bashrc or ~/.zshrc etc.)"
 	@echo "  alias todo=~/.todo"
