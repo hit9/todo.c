@@ -36,7 +36,7 @@
 buf_t *
 buf_new(size_t unit)
 {
-    buf_t *buf = (buf_t *)malloc(sizeof(buf_t));
+    buf_t *buf = malloc(sizeof(buf_t));
 
     if (buf) {
         buf->size = 0;

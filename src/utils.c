@@ -55,7 +55,7 @@ colored(uint8_t *str, size_t size, int color)
     size_t sz = (4 + 6 + 2 + 1) * sizeof(uint8_t) + size;
 
     /* allocate enough buffer */
-    uint8_t *ret = (uint8_t *)malloc(sz * sizeof(uint8_t));
+    uint8_t *ret = malloc(sz * sizeof(uint8_t));
 
     /* mix them in */
     sprintf(ret, "%s%dm%.*s%s", prefix, color, (int)size, str, suffix);
