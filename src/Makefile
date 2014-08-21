@@ -1,23 +1,21 @@
-NAME = todo
+CC = cc
+CFLAGS = -Wall
 
-INC = ./
+# Executable file
+TARGET = todo
 
-SRC =	main.c \
-	buffer.c \
-	generator.c \
-	parser.c \
-	todo.c \
-	utils.c
-
-CC = gcc
-
+# Source and object files
+SRC = $(wildcard ./*.c)
 OBJ = $(SRC:c=o)
 
-$(NAME): $(OBJ)
-	$(CC) $(OBJ) -o $(NAME) -I$(INC)
 
-all: $(NAME)
+$(TARGET): $(OBJ)
+	$(CC) $(CFLAGS) $^ -o $@
+
+all: $(TARGET)
 
 clean:
-	rm -rf *.o todo
+	@echo cleaning
+	@rm -rf *.o todo
 
+.PHONY: clean
