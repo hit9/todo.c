@@ -41,9 +41,7 @@ Examples:
 Storage
 -------
 
-todo will always use `./todo.txt` prior to `~/todo.txt` for persistent storage, if there is a `todo.txt` in 
-current directory, `todo` will use it, else `todo` will try to find`~/todo.txt`, if it doesn't exist, `todo`
-touches an empty file `~/todo.txt`.
+todo will always use `./todo.txt` prior to `~/todo.txt` for persistent storage, if there is a `todo.txt` in current directory, `todo` will use it, else `todo` will try to find `~/todo.txt`, if it doesn't exist, `todo` touches an empty file `~/todo.txt`.
 
 So when your are not in home directory, to new a todo, just:
 
