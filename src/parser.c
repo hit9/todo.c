@@ -47,7 +47,10 @@ todo_parse(hbuf_t *buf)
 
     while (ch < buf->data + buf->size) {
         while (*(ch = skip_space(ch)) == '\n')
-            lineno++;
+            lineno++ && ch++;
+
+        if (ch >= buf->data + buf->size)
+            break;
 
         if (*ch++ != '-')
             return NULL;  // ESNYTAXERR
@@ -82,16 +85,14 @@ todo_parse(hbuf_t *buf)
 
         while (*ch++ != '\n');
 
-        size = ch - data - 1; // exclude '\n'
+        size = ch - data - 1;  // exclude '\n'
 
         if ((task = task_new(state, data, size)) == NULL)
             return NULL;  // ENOMEM
 
         todo_push(todo, task);
 
-        // skip '\n'
-        ch += 1;
-        lineno += 1;
+        lineno += 1;  // count '\n'
     }
     return todo;
 }
