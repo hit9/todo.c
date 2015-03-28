@@ -18,12 +18,9 @@
 #define GENERATOR_H
 
 #include <assert.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "todo.h"
 #include "hbuf.h"
+#include "todo.h"
 
 hbuf_t *todo_generate(todo_t *);
 
