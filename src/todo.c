@@ -28,12 +28,15 @@ task_new(int state, uint8_t *data, size_t size)
         task->state = state;
         task->next = NULL;
 
-        hbuf_t *data = hbuf_new(TODO_BUF_UNIT);
+        hbuf_t *buf = hbuf_new(TODO_BUF_UNIT);
 
-        if (!data)
-            return NULL
+        if (!buf)
+            return NULL;
 
-        task->data = data;
+        if (hbuf_put(buf, data, size) != HBUF_OK)
+            return NULL;
+
+        task->data = buf;
     }
     return task;
 }
