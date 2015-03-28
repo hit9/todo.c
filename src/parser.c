@@ -24,18 +24,36 @@ skip_space(uint8_t *ch)
     return ch;
 }
 
-todo_t *
+void
+parser_result_free(parser_result_t *parser_result)
+{
+    if (parser_result != NULL)
+        free(parser_result);
+}
+
+parser_result_t *
 todo_parse(hbuf_t *buf)
 {
     assert(buf != NULL);
 
-    todo_t *todo = todo_new();
+    parser_result_t *result = malloc(sizeof(parser_result_t));
 
-    if (todo == NULL)
+    result->todo = NULL;
+    result->lineno = 1;
+    result->error = PARSER_OK;
+
+    if (result == NULL)
         return NULL;  // ENOMEM
 
+    result->todo = todo_new();
+
+    if (result->todo == NULL) {
+        result->error = PARSER_ENOMEM;
+        return result;  // ENOMEM
+    }
+
     if (buf->size == 0)
-        return todo;
+        return result;
 
     task_t *task = NULL;
     uint8_t *data = NULL;
@@ -43,22 +61,25 @@ todo_parse(hbuf_t *buf)
     int state = undo;
 
     uint8_t *ch = buf->data;
-    size_t lineno = 1;
 
     while (ch < buf->data + buf->size) {
         while (*(ch = skip_space(ch)) == '\n')
-            lineno++ && ch++;
+            (result->lineno)++ && ch++;
 
         if (ch >= buf->data + buf->size)
             break;
 
-        if (*ch++ != '-')
-            return NULL;  // ESNYTAXERR
+        if (*ch++ != '-') {
+            result->error = PARSER_ESYNTAX;
+            return result;
+        }
 
         ch = skip_space(ch);
 
-        if (*ch++ != '[')
-            return NULL;  // ESNYTAXERR
+        if (*ch++ != '[') {
+            result->error = PARSER_ESYNTAX;
+            return result;
+        }
 
         ch = skip_space(ch);
 
@@ -71,13 +92,16 @@ todo_parse(hbuf_t *buf)
                 state = undo;
                 break;
             default:
-                return NULL;  // ESNYTAXERR
+                result->error = PARSER_ESYNTAX;
+                return result;
         }
 
         ch = skip_space(ch);
 
-        if (*ch++ != ']')
-            return NULL;  // ESNYTAXERR
+        if (*ch++ != ']') {
+            result->error = PARSER_ESYNTAX;
+            return result;
+        }
 
         ch = skip_space(ch);
 
@@ -87,12 +111,14 @@ todo_parse(hbuf_t *buf)
 
         size = ch - data - 1;  // exclude '\n'
 
-        if ((task = task_new(state, data, size)) == NULL)
-            return NULL;  // ENOMEM
+        if ((task = task_new(state, data, size)) == NULL) {
+            result->error = PARSER_ENOMEM;
+            return result;
+        }
 
-        todo_push(todo, task);
+        todo_push(result->todo, task);
 
-        lineno += 1;  // count '\n'
+        result->lineno += 1;  // count '\n'
     }
-    return todo;
+    return result;
 }

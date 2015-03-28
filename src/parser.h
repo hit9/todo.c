@@ -24,6 +24,19 @@
 #include "hbuf.h"
 #include "todo.h"
 
-todo_t *todo_parse(hbuf_t *);
+typedef enum {
+    PARSER_OK = 0,
+    PARSER_ENOMEM = 1,
+    PARSER_ESYNTAX = 2,
+} parser_error_t;
+
+typedef struct parser_result_st {
+    todo_t *todo;
+    size_t lineno;
+    int error;
+} parser_result_t;
+
+parser_result_t *todo_parse(hbuf_t *);
+void parser_result_free(parser_result_t *);
 
 #endif
