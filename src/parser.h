@@ -36,6 +36,16 @@ typedef struct parser_result_st {
     int error;
 } parser_result_t;
 
+/**
+ * todo_t *todo = NULL;
+ * parser_result_t *result = todo_parser(buf)
+ *
+ * if (result->error == PARSER_OK)
+ *   todo = result->todo;
+ * parser_result_free(result);
+ * ...
+ * todo_free(todo);
+ */
 parser_result_t *todo_parse(hbuf_t *);
 void parser_result_free(parser_result_t *);
 
