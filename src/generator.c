@@ -14,6 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include "generator.h"
+
 hbuf_t *
 todo_generate(todo_t *todo)
 {

@@ -25,9 +25,6 @@
 #include "todo.h"
 #include "hbuf.h"
 
-#define DONE_MASK 'x'
-#define UNDO_MASK ' '
-
 hbuf_t *todo_generate(todo_t *);
 
 #endif
