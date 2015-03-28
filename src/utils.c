@@ -69,3 +69,9 @@ file_read(hbuf_t *buf, const char *path)
     fclose(fp);
     return TD_OK;
 }
+
+void
+println(const char *str)
+{
+    printf("%s\n", str);
+}
