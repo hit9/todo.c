@@ -28,21 +28,13 @@ todo_generate(todo_t *todo)
 
     task_t *task = todo->head;
 
-    size_t size = 0;
-    size_t dsize = sizeof(uint8_t * strlen("- [ ] \n"))
-
     while (task != NULL) {
-        size = task->data->size + dsize;
-
-        if (hbuf_grow(buf, size) != HBUF_OK)
-            return NULL;
-
-        sprintf(buf->data + size,
-                "- [%c] %.*s\n",
+        if (hbuf_sprintf(buf, "- [%c] %.*s\n",
                 task->state == done ? 'x' : ' ',
                 task->data->size,
-                task->data->data);
-        buf->size += size;
+                task->data->data) != HBUF_OK)
+            return NULL;
+
         task = task->next;
     }
     return buf;
