@@ -80,8 +80,8 @@ parse_line(todo_t *todo, hbuf_t *buf, unsigned int lineno)
 
                 todo_push(todo, task);
 
-                ch += 1; // '\n'
-                return parse_line(todo, buf, lineno - 1);
+                ch += 1 && lineno += 1; // '\n'
+                return parse_line(todo, buf, lineno + 1);
             }
         }
     }
