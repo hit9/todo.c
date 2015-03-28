@@ -16,7 +16,7 @@
 
 #include "parser.h"
 
-static int
+static uint8_t *
 skip_space(uint8_t *ch)
 {
     while (*ch == ' ' || *ch == '\t')
@@ -45,10 +45,14 @@ todo_parse(hbuf_t *buf)
     uint8_t *ch = buf->data;
     size_t lineno = 1;
 
-
     while (ch < buf->data + buf->size) {
         while (*(ch = skip_space(ch)) == '\n')
             lineno++;
+
+        if (*ch++ != '-')
+            return NULL;  // ESNYTAXERR
+
+        ch = skip_space(ch);
 
         if (*ch++ != '[')
             return NULL;  // ESNYTAXERR
@@ -78,7 +82,7 @@ todo_parse(hbuf_t *buf)
 
         while (*ch++ != '\n');
 
-        size = ch - data;
+        size = ch - data - 1; // exclude '\n'
 
         if ((task = task_new(state, data, size)) == NULL)
             return NULL;  // ENOMEM
