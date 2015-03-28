@@ -20,10 +20,9 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include "todo.h"
 #include "hbuf.h"
+#include "todo.h"
 
 todo_t *todo_parse(hbuf_t *);
 
