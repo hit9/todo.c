@@ -14,45 +14,49 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef TODO_H
-#define TODO_H
 
-#define TODO_BUF_UNIT 128
+#ifndef __HBUF_H
+#define __HBUF_H
 
 #include <assert.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include "hbuf.h"
+#include <string.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define HBUF_MAX_SIZE 16 * 1024 * 1024  //16mb
 
 typedef enum {
-    TODO_OK = 0,
-    TODO_ENOTFOUND = 1,
-} todo_error_t;
+    HBUF_OK = 0,
+    HBUF_ENOMEM = 1,
+} hbuf_error_t;
 
-typedef enum {
-    done = 1,
-    undo = 0,
-} task_state;
+typedef struct hbuf_st {
+    uint8_t *data;      /* real data */
+    size_t size;        /* real data size */
+    size_t cap;         /* buf cap */
+    size_t unit;        /* reallocation unit size */
+} hbuf_t;
 
-typedef struct task_st {
-    int state;
-    hbuf_t *data;
-    struct task *next;
-} task_t;
 
-typedef struct todo_st {
-    task_t *head;
-} todo_t;
+hbuf_t *hbuf_new(size_t);
+void hbuf_free(hbuf_t *);
+void hbuf_clear(hbuf_t *);
+int hbuf_grow(hbuf_t *, size_t);
+char *hbuf_str(hbuf_t *);
+void hbuf_print(hbuf_t *);
+int hbuf_put(hbuf_t *, uint8_t *, size_t);
+int hbuf_putc(hbuf_t *, char);
+int hbuf_puts(hbuf_t *, char *);
+void hbuf_lrm(hbuf_t *, size_t);
+void hbuf_rrm(hbuf_t *, size_t);
 
-task_t *task_new(int, uint8_t *, size_t);
-task_t *task_free(task_t *);
-todo_t *todo_new();
-size_t todo_size(todo_t *);
-void todo_clear(todo_t *);
-void todo_free(todo_t *);
-void todo_push(todo_t *, task_t *);
-task_t *todo_get(todo_t *, size_t);
-int todo_pop(todo_t *, size_t);
-void todo_clean(todo_t *);
+#ifdef __cplusplus
+}
+#endif
 
 #endif

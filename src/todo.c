@@ -1,186 +1,216 @@
-/*
- * Copyright (c) 2013, hit9
+/**
+ * Copyright (c) 2015, Chao Wang (hit9 <hit9@icloud.com>)
  *
- * All rights reserved.
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
  *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- *     * Redistributions of source code must retain the above copyright notice,
- *       this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
- * OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
 
 #include "todo.h"
 
-#include <stdlib.h>
+/**
+ * New task.
+ */
+task_t *
+task_new(int state, uint8_t *data, size_t size)
+{
+    task_t *task = malloc(sizeof(task_t));
 
-/* return an empty todo */
+    if (task != NULL) {
+        task->state = state;
+        task->next = NULL;
+
+        hbuf_t *data = hbuf_new(TODO_BUF_UNIT);
+
+        if (!data)
+            return NULL
+
+        task->data = data;
+    }
+    return task;
+}
+
+/**
+ * Free task.
+ */
+void
+task_free(task_t *task)
+{
+    if (task != NULL) {
+        if (task->data != NULL)
+            hbuf_free(task->data);
+        free(task);
+    }
+}
+
+/**
+ * New todo.
+ */
 todo_t *
 todo_new()
 {
-    todo_t *td = (todo_t *)malloc(sizeof(todo_t));
+    todo_t *todo = malloc(sizeof(todo_t));
 
-    if (td) {
-        td->head = 0;
+    if (todo != NULL) {
+        todo->head = NULL;
     }
-
-    return td;
+    return todo;
 }
 
-
-/* return todo's task count */
+/**
+ * Get todo size.
+ */
 size_t
-todo_size(todo_t *td)
+todo_size(todo_t *todo)
 {
-    size_t i;
-    task_t *t;
+    assert(todo != NULL);
 
-    for (i = 0, t = td->head; t; t = t->next, i++);
+    size_t size = 0;
+    task_t *task = todo->head;
 
-    return i;
+    while (task != NULL) {
+        size += 1;
+        task = task->next;
+    }
+    return size;
 }
 
-
-/* return an task */
-task_t *
-task_new(uint8_t *content, size_t content_size, int state)
+/**
+ * Clear todo.
+ */
+void
+todo_clear(todo_t *todo)
 {
-    task_t *tk = (task_t *)malloc(sizeof(task_t));
+    assert(todo != NULL);
 
-    if (tk) {
-        tk->state = state;
-        tk->content = content;
-        tk->c_size = content_size;
-        tk->next = 0;
+    task_t *task = todo->head;
+    task_t *next;
+
+    while (task != NULL) {
+        next = task->next;
+        task_free(task);
+        task = next;
     }
 
-    return tk;
+    todo->head = NULL;
 }
 
-
-/* append a task to todo list */
+/**
+ * Free todo.
+ */
 void
-todo_append(todo_t *td, task_t *tk)
+todo_free(todo_t *todo)
 {
-    task_t *t = td->head;
-
-    if (t) {
-        /* goto the last node */
-        for (; t->next; t = t->next);
-        /* append task `tk` */
-        t->next = tk;
-    } else  /* else, initialize the head task */
-        td->head = tk;
+    if (todo != NULL) {
+        todo_clear(todo);
+        free(todo);
+    }
 }
 
-
-/* free all tasks and the todo */
+/**
+ * Push a task at last of todo.
+ */
 void
-todo_free(todo_t *td)
+todo_push(todo_t *todo, task_t *task)
 {
-    task_t *t = td->head, *next;
+    assert(task->next == NULL);
 
-    while (t) {
-        /* record the next */
-        next = t->next;
-        /* free current node */
-        free(t);
-        /* go to next node */
-        t = next;
-    }  /* until t == 0 , yet the last one */
+    task_t *seek = todo->head;
 
-    /* free todo */
-    free(td);
+    if (seek != NULL) {
+        while (seek->next != NULL)
+            seek = seek->next;
+        seek->next = task;
+    } else {
+        todo->head = task;
+    }
 }
 
-
-/* get task by position */
+/**
+ * Get task by index.
+ */
 task_t *
-todo_get(todo_t *td, int position)
+todo_get(todo_t *todo, size_t idx)
 {
-    int i;
-    task_t *t;
+    assert(todo != NULL);
 
-    for (t = td->head, i = 0; t; t = t->next, i++) {
-        if (position == i)
-            return t;
+    task_t *task = todo->head;
+
+    while (task != NULL) {
+        if (idx == 0)
+            return task;
+        task = task->next;
+        idx -= 1;
     }
 
-    return 0;  /* not found! */
+    return NULL;
 }
 
-/* pop task, return 0 is ok*/
+/**
+ * Pop a task by index.
+ */
 int
-todo_pop(todo_t *td, task_t *tk)
+todo_pop(todo_t *todo, size_t idx)
 {
-    task_t *head = td->head, *t;
+    assert(todo != NULL);
 
-    if (tk == head){ /* if pop node is the head node */
-        td->head = head->next;
-        free(head);
-        return 0;
-    }
-    /* else goto the pop node's pre node */
-    for (t = head; t->next != tk; t = t->next);
+    task_t *task = todo->head;
+    task_t *prev = NULL;
 
-    t->next = tk->next;
-    free(tk);
-}
-
-void
-todo_clear(todo_t *td)
-{
-    task_t *t = td->head, *next;
-
-    /* free all nodes */
-    while (t) {
-        next = t->next;
-        free(t);
-        t = next;
+    while (task != NULL && idx != 0) {
+        prev = task;
+        task = task->next;
+        idx -= 1;
     }
 
-    /* point head to null */
-    td->head = 0;
+    if (task == NULL)
+        return TODO_ENOTFOUND;
+
+    if (task == todo->head) {
+        assert(prev == NULL);
+        todo->head = task->next;
+    } else {
+        assert(prev != NULL);
+        prev->next = task->next;
+    }
+
+    task_free(task);
+    return TODO_OK;
 }
 
+/**
+ * Clean done tasks.
+ */
 void
-todo_cleanup(todo_t *td)
+todo_clean(todo_t *todo)
 {
-    task_t *t = td->head, *prev = 0;
+    task_t *task = todo->head;
+    task_t *prev = NULL;
 
-    while (t) {
-        if (t->state == done) {
-            /* check that we are not removing head */
-            if (prev) {
-                prev->next = t->next;
-                free(t);
-                t = prev->next;
+    while (task != NULL) {
+        if (task->state == done) {
+            if (task == todo->head) {
+                assert(prev == NULL);
+                todo->head = task->next;
+                task_free(task);
+                task = todo->head;
             } else {
-                /* we are removing head -> set new head */
-                td->head = t->next;
-                free(t);
-                t = td->head;
+                assert(prev != NULL);
+                prev->next = task->next;
+                task_free(task);
+                task = task->next;
             }
         } else {
-            /* nothing removed, proceed with next task */
-            prev = t;
-            t = t->next;
+            prev = task;
+            task = task->next;
         }
     }
 }
