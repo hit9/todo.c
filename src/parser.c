@@ -31,7 +31,7 @@ skip_space(uint8_t *ch)
 }
 
 static unsigned int
-parse_line(todo_t *todo, hbuf_t *buf, unsigned int lineno)
+parse_line(todo_t *todo, uint8_t *start, size_t len, unsigned int lineno)
 {
     if (lineno <= 0) {
         // failed
@@ -40,10 +40,10 @@ parse_line(todo_t *todo, hbuf_t *buf, unsigned int lineno)
 
     int state = undo;
 
-    if (buf->size == 0)
+    if (len == 0)
         return 0;
 
-    uint8_t *ch = buf->data;
+    uint8_t *ch = start;
     uint8_t *data = NULL;
     size_t size = 0;
     task_t *task = NULL;
@@ -76,12 +76,12 @@ parse_line(todo_t *todo, hbuf_t *buf, unsigned int lineno)
                 task = task_new(state, data, size);
 
                 if (task == NULL)
-                    return -1;
+                    return -1; // NOMEM
 
                 todo_push(todo, task);
 
                 ch += 1 && lineno += 1; // '\n'
-                return parse_line(todo, buf, lineno + 1);
+                return parse_line(todo, ch, len - (ch - start), lineno + 1);
             }
         }
     }
