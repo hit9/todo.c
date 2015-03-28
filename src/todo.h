@@ -37,7 +37,7 @@ typedef enum {
 typedef struct task_st {
     int state;
     hbuf_t *data;
-    struct task *next;
+    struct task_st *next;
 } task_t;
 
 typedef struct todo_st {
@@ -45,7 +45,7 @@ typedef struct todo_st {
 } todo_t;
 
 task_t *task_new(int, uint8_t *, size_t);
-task_t *task_free(task_t *);
+void task_free(task_t *);
 todo_t *todo_new();
 size_t todo_size(todo_t *);
 void todo_clear(todo_t *);
