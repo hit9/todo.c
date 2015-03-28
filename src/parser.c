@@ -40,7 +40,7 @@ todo_parse(hbuf_t *buf)
 
     result->todo = NULL;
     result->lineno = 1;
-    result->error = PARSER_OK;
+    result->error = TD_OK;
 
     if (result == NULL)
         return NULL;  // ENOMEM
@@ -48,7 +48,7 @@ todo_parse(hbuf_t *buf)
     result->todo = todo_new();
 
     if (result->todo == NULL) {
-        result->error = PARSER_ENOMEM;
+        result->error = TD_ENOMEM;
         return result;  // ENOMEM
     }
 
@@ -70,14 +70,14 @@ todo_parse(hbuf_t *buf)
             break;
 
         if (*ch++ != '-') {
-            result->error = PARSER_ESYNTAX;
+            result->error = TD_ESYNTAX;
             return result;
         }
 
         ch = skip_space(ch);
 
         if (*ch++ != '[') {
-            result->error = PARSER_ESYNTAX;
+            result->error = TD_ESYNTAX;
             return result;
         }
 
@@ -92,14 +92,14 @@ todo_parse(hbuf_t *buf)
                 state = undo;
                 break;
             default:
-                result->error = PARSER_ESYNTAX;
+                result->error = TD_ESYNTAX;
                 return result;
         }
 
         ch = skip_space(ch);
 
         if (*ch++ != ']') {
-            result->error = PARSER_ESYNTAX;
+            result->error = TD_ESYNTAX;
             return result;
         }
 
@@ -112,7 +112,7 @@ todo_parse(hbuf_t *buf)
         size = ch - data - 1;  // exclude '\n'
 
         if ((task = task_new(state, data, size)) == NULL) {
-            result->error = PARSER_ENOMEM;
+            result->error = TD_ENOMEM;
             return result;
         }
 

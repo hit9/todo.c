@@ -21,14 +21,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "share.h"
 #include "hbuf.h"
 #include "todo.h"
-
-typedef enum {
-    PARSER_OK = 0,
-    PARSER_ENOMEM = 1,
-    PARSER_ESYNTAX = 2,
-} parser_error_t;
 
 typedef struct parser_result_st {
     todo_t *todo;
@@ -40,7 +35,7 @@ typedef struct parser_result_st {
  * todo_t *todo = NULL;
  * parser_result_t *result = todo_parser(buf)
  *
- * if (result->error == PARSER_OK)
+ * if (result->error == TD_OK)
  *   todo = result->todo;
  * parser_result_free(result);
  * ...

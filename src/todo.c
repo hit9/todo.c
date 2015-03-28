@@ -28,7 +28,7 @@ task_new(int state, uint8_t *data, size_t size)
         task->state = state;
         task->next = NULL;
 
-        hbuf_t *buf = hbuf_new(TODO_BUF_UNIT);
+        hbuf_t *buf = hbuf_new(BUF_UNIT);
 
         if (!buf)
             return NULL;
@@ -175,7 +175,7 @@ todo_pop(todo_t *todo, size_t idx)
     }
 
     if (task == NULL)
-        return TODO_ENOTFOUND;
+        return TD_ENOTFOUND;
 
     if (task == todo->head) {
         assert(prev == NULL);
@@ -186,7 +186,7 @@ todo_pop(todo_t *todo, size_t idx)
     }
 
     task_free(task);
-    return TODO_OK;
+    return TD_OK;
 }
 
 /**

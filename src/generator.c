@@ -21,7 +21,7 @@ todo_generate(todo_t *todo)
 {
     assert(todo != NULL);
 
-    hbuf_t *buf = hbuf_new(TODO_BUF_UNIT);
+    hbuf_t *buf = hbuf_new(BUF_UNIT);
 
     if (buf == NULL)
         return NULL;

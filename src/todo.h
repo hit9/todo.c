@@ -17,17 +17,12 @@
 #ifndef TODO_H
 #define TODO_H
 
-#define TODO_BUF_UNIT 128
-
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "hbuf.h"
 
-typedef enum {
-    TODO_OK = 0,
-    TODO_ENOTFOUND = 1,
-} todo_error_t;
+#include "share.h"
+#include "hbuf.h"
 
 typedef enum {
     done = 1,
