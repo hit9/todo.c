@@ -50,7 +50,7 @@ todo_parse(hbuf_t *buf)
         while (*(ch = skip_space(ch)) == '\n')
             lineno++;
 
-        if (*ch != '[')
+        if (*ch++ != '[')
             return NULL;  // ESNYTAXERR
 
         ch = skip_space(ch);
@@ -64,13 +64,13 @@ todo_parse(hbuf_t *buf)
                 state = undo;
                 break;
             default:
-                return NULL;  // EPARSEERR
+                return NULL;  // ESNYTAXERR
         }
 
         ch = skip_space(ch);
 
         if (*ch++ != ']')
-            return NULL;  // EPARSEERR
+            return NULL;  // ESNYTAXERR
 
         ch = skip_space(ch);
 
@@ -85,7 +85,8 @@ todo_parse(hbuf_t *buf)
 
         todo_push(todo, task);
 
-        ch += 1;  // '\n'
+        // skip '\n'
+        ch += 1;
         lineno += 1;
     }
     return todo;
