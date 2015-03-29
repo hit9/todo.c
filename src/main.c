@@ -179,11 +179,18 @@ _add:
     int idx;
 
     for (idx = 1; idx < argc; idx++) {
-        if (hbuf_puts(buf, (char *)argv[idx]) != HBUF_OK ||
-                hbuf_puts(buf, " ") != HBUF_OK) {
+        if (hbuf_puts(buf, (char *)argv[idx]) != HBUF_OK) {
             error = TD_ENOMEM;
             td_emsg(TD_EMSG_NOMEM);
             goto _exit;
+        }
+
+        if (idx + 1 < argc) {
+            if (hbuf_putc(buf, ' ') != HBUF_OK) {
+                error = TD_ENOMEM;
+                td_emsg(TD_EMSG_NOMEM);
+                goto _exit;
+            }
         }
     }
 

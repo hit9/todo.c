@@ -9,7 +9,7 @@ SRC =	main.c \
 	todo.c \
 	utils.c
 
-CC = gcc
+CC = cc
 
 OBJ = $(SRC:c=o)
 
