@@ -43,6 +43,7 @@ void td_task_print(task_t *, size_t);
 
 int main(int argc, const char *argv[])
 {
+    td_help();
     todo_t *todo = td_try_parse();
     task_t *task = todo->head;
     size_t idx = 1;
@@ -78,6 +79,7 @@ td_help()
     println("Usage:");
     println("  todo [-h|-v|-a]");
     println("  todo (<id> [done|undo|remove])|<task>..");
+    println("");
     println("Examples:");
     println("  add a task       -  todo Go shopping");
     println("  check a task     -  todo 1 done");
@@ -87,6 +89,9 @@ td_help()
     println("  list all tasks   -  todo --all");
     println("  clear done tasks -  todo cleanup");
     println("  clear all tasks  -  todo clear");
+    println("");
+    println("GitHub: https://github.com/hit9/todo.c");
+    td_exit(TD_OK);
 }
 
 void
