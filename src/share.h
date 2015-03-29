@@ -28,6 +28,7 @@ typedef enum {
     TD_ENOMEM = 3,
     TD_ESYNTAX = 4,
     TD_ENOTFOUND = 5,
+    TD_EINVALIDIDX = 6,
 } td_error_t;
 
 #endif

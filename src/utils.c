@@ -94,7 +94,30 @@ file_write(const char *path, hbuf_t *buf)
 }
 
 void
-println(const char *str)
+println(const char *fmt, ...)
 {
-    printf("%s\n", str);
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    printf("\n");
+    va_end(args);
+}
+
+int
+is_int_like(const char *str)
+{
+    if (str == NULL ||
+            *str == '\0' ||
+            *str == ' ' ||
+            *str == '\t')
+      return 0;
+    char * ch;
+    strtol(str, &ch, 10);
+    return *ch == '\0';
+}
+
+int str2int(const char *str)
+{
+    char *ch = NULL;
+    return (int)strtol(str, &ch, 10);
 }

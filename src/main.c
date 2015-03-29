@@ -26,16 +26,19 @@
 #include "parser.h"
 #include "generator.h"
 
-#define VERSION "0.2.4"
+#define TD_VERSION "0.2.4"
 
 #define TD_EMSG_NOMEM       "no memory"
 #define TD_EMSG_IOR         "error to read %s"
 #define TD_EMSG_IOW         "error to write %s"
 #define TD_EMSG_SYNTAX      "syntax error at line %lu"
+#define TD_EMSG_NOTFOUND    "task %lu not found"
+#define TD_EMSG_INVALIDIDX  "invalid task index %d"
 
 void td_emsg(const char *, ...);
 void td_exit(int);
-void td_help();
+void td_help(void);
+void td_version(void);
 hbuf_t *td_try_txt();
 hbuf_t *td_try_read(hbuf_t *);
 todo_t *td_try_parse(hbuf_t *);
@@ -43,16 +46,154 @@ void td_try_write(hbuf_t *, todo_t *);
 void td_task_print(task_t *, size_t);
 void td_ls_all(todo_t *);
 void td_ls_undo(todo_t *);
+void td_try_idx(todo_t *, int);
 
 int main(int argc, const char *argv[])
 {
     hbuf_t *path = td_try_txt();
     todo_t *todo = td_try_parse(path);
-    td_ls_all(todo);
+
+    int error = TD_OK;
+
+    switch (argc) {
+        case 1:
+            goto _ls_undo;
+        case 2:
+            if (0 == strcmp(argv[1], "-h") ||
+                    0 == strcmp(argv[1], "--help"))
+                goto _help;
+            else if (0 == strcmp(argv[1], "-v") ||
+                    0 == strcmp(argv[1], "--version"))
+                goto _version;
+            else if (0 == strcmp(argv[1], "-a") ||
+                    0 == strcmp(argv[1], "--all"))
+                goto _ls_all;
+            else if (0 == strcmp(argv[1], "clear"))
+                goto _clear;
+            else if (0 == strcmp(argv[1], "cleanup"))
+                goto _cleanup;
+            else if (is_int_like(argv[1]))
+                goto _idx;
+            else
+                goto _add;
+        case 3:
+            if (is_int_like(argv[1]))
+                goto _idx;
+            else
+                goto _add;
+        default:
+            goto _add;
+    }
+
+_help:
+    td_help();
+    goto _exit;
+
+_version:
+    td_version();
+    goto _exit;
+
+_clear:
+    todo_clear(todo);
     td_try_write(path, todo);
+    goto _exit;
+
+_cleanup:
+    todo_clean(todo);
+    td_try_write(path, todo);
+    goto _exit;
+
+_ls_all:
+    td_ls_all(todo);
+    goto _exit;
+
+_ls_undo:
+    td_ls_undo(todo);
+    goto _exit;
+
+_idx:
+{
+    int idx = str2int(argv[1]);
+
+    if (idx < 1) {
+        error = TD_EINVALIDIDX;
+        td_emsg(TD_EMSG_INVALIDIDX, idx);
+        goto _exit;
+    }
+
+    task_t *task = todo_get(todo, (size_t)(idx - 1));
+
+    if (task == NULL) {
+        error = TD_ENOTFOUND;
+        td_emsg(TD_EMSG_NOTFOUND, idx);
+        goto _exit;
+    }
+
+    if (argc == 2) {
+        td_task_print(task, idx);
+        goto _exit;
+    } else if (argc == 3) {
+        if (0 == strcmp(argv[2], "done"))
+            goto _done;
+        else if (0 == strcmp(argv[2], "undo"))
+            goto _undo;
+        else if (0 == strcmp(argv[2], "remove") ||
+                0 == strcmp(argv[2], "rm"))
+            goto _remove;
+        else
+            goto _help;
+    }
+
+_done:
+    task->state = done;
+    td_try_write(path, todo);
+    goto _exit;
+
+_undo:
+    task->state = undo;
+    td_try_write(path, todo);
+    goto _exit;
+
+_remove:
+    todo_pop(todo, idx - 1);
+    td_try_write(path, todo);
+    goto _exit;
+}
+
+_add:
+{
+    hbuf_t *buf = hbuf_new(BUF_UNIT);
+
+    int idx;
+
+    for (idx = 0; idx < argc; idx++) {
+        if (hbuf_puts(buf, (char *)argv[idx]) != HBUF_OK ||
+                hbuf_puts(buf, " ") != HBUF_OK) {
+            error = TD_ENOMEM;
+            td_emsg(TD_EMSG_NOMEM);
+            goto _exit;
+        }
+    }
+
+    task_t *task = task_new(undo, buf->data, buf->size);
+
+    if (task == NULL) {
+        error = TD_ENOMEM;
+        td_emsg(TD_EMSG_NOMEM);
+        goto _exit;
+    }
+
+    todo_push(todo, task);
+    hbuf_free(buf);
+
+    td_try_write(path, todo);
+    goto _exit;
+}
+
+_exit:
     todo_free(todo);
     hbuf_free(path);
-    return 0;
+    return error;
 }
 
 void
@@ -71,7 +212,13 @@ td_exit(int code)
 }
 
 void
-td_help()
+td_version(void)
+{
+    println("todo@%s", TD_VERSION);
+}
+
+void
+td_help(void)
 {
     println("Usage:");
     println("  todo [-h|-v|-a]");
@@ -88,7 +235,6 @@ td_help()
     println("  clear all tasks  -  todo clear");
     println("");
     println("GitHub: https://github.com/hit9/todo.c");
-    td_exit(TD_OK);
 }
 
 void
