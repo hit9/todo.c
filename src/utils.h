@@ -41,6 +41,7 @@ typedef enum {
 int file_exists(const char *);
 int file_touch(const char *);
 int file_read(hbuf_t *, const char *);
+int file_write(const char *, hbuf_t *);
 void println(const char *);
 
 #endif

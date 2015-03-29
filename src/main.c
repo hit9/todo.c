@@ -37,18 +37,21 @@ void td_emsg(const char *, ...);
 void td_exit(int);
 void td_help();
 hbuf_t *td_try_txt();
-hbuf_t *td_try_read();
-todo_t *td_try_parse();
-void *td_try_write(todo_t *);
+hbuf_t *td_try_read(hbuf_t *);
+todo_t *td_try_parse(hbuf_t *);
+void td_try_write(hbuf_t *, todo_t *);
 void td_task_print(task_t *, size_t);
 void td_ls_all(todo_t *);
 void td_ls_undo(todo_t *);
 
 int main(int argc, const char *argv[])
 {
-    todo_t *todo = td_try_parse();
-    td_ls_undo(todo);
+    hbuf_t *path = td_try_txt();
+    todo_t *todo = td_try_parse(path);
+    td_ls_all(todo);
+    td_try_write(path, todo);
     todo_free(todo);
+    hbuf_free(path);
     return 0;
 }
 
@@ -156,9 +159,9 @@ td_try_txt()
 }
 
 hbuf_t *
-td_try_read()
+td_try_read(hbuf_t *path)
 {
-    hbuf_t *path = td_try_txt();
+    assert(path != NULL);
 
     hbuf_t *buf = hbuf_new(FILE_READ_BUF_UNIT);
 
@@ -168,7 +171,7 @@ td_try_read()
         td_exit(TD_ENOMEM);
     }
 
-    switch (file_read(buf, hbuf_str(path))) {
+    switch (file_read(buf, (const char *)hbuf_str(path))) {
         case TD_ENOMEM:
             td_emsg(TD_EMSG_NOMEM);
             hbuf_free(buf);
@@ -180,17 +183,19 @@ td_try_read()
             hbuf_free(path);
             td_exit(TD_ENOMEM);
         case TD_OK:
-            hbuf_free(path);
-            break;
+            break;  // defer release `path`
     }
 
     return buf;
 }
 
 todo_t *
-td_try_parse()
+td_try_parse(hbuf_t *path)
 {
-    hbuf_t *buf = td_try_read();
+    assert(path != NULL);
+
+    hbuf_t *buf = td_try_read(path);
+
     parser_result_t *res = todo_parse(buf);
 
     if (res == NULL) {
@@ -205,13 +210,15 @@ td_try_parse()
             td_emsg(TD_EMSG_NOMEM);
             hbuf_free(buf);
             parser_result_free(res);
+            hbuf_free(path);
             td_exit(TD_ENOMEM);
         case TD_ESYNTAX:
             td_emsg(TD_EMSG_SYNTAX, res->lineno);
             hbuf_free(buf);
             parser_result_free(res);
+            hbuf_free(path);
             td_exit(TD_ENOMEM);
-        case TD_OK:
+        case TD_OK:  // defer relase `path`
             todo = res->todo;
             hbuf_free(buf);
             parser_result_free(res);
@@ -219,11 +226,39 @@ td_try_parse()
     return todo;
 }
 
-void *
-td_try_write(todo_t *todo)
+void
+td_try_write(hbuf_t *path, todo_t *todo)
 {
+    assert(path != NULL);
     assert(todo != NULL);
 
+    hbuf_t *buf = todo_generate(todo);
+
+    if (buf == NULL) {
+        td_emsg(TD_EMSG_NOMEM);
+        hbuf_free(buf);
+        todo_free(todo);
+        hbuf_free(path);
+        td_exit(TD_ENOMEM);
+    }
+
+    switch (file_write((const char *)hbuf_str(path), buf)) {
+        case TD_ENOMEM:
+            td_emsg(TD_EMSG_NOMEM);
+            hbuf_free(buf);
+            todo_free(todo);
+            hbuf_free(path);
+            td_exit(TD_ENOMEM);
+        case TD_EIOW:
+            td_emsg(TD_EMSG_IOW, hbuf_str(path));
+            hbuf_free(buf);
+            todo_free(todo);
+            hbuf_free(path);
+            td_exit(TD_EIOW);
+        case TD_OK:  // defer release `todo` & `path`
+            hbuf_free(buf);
+            break;
+    }
 }
 
 void
