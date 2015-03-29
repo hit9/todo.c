@@ -172,11 +172,13 @@ _remove:
 
 _add:
 {
+    assert(argc > 1);
+
     hbuf_t *buf = hbuf_new(BUF_UNIT);
 
     int idx;
 
-    for (idx = 0; idx < argc; idx++) {
+    for (idx = 1; idx < argc; idx++) {
         if (hbuf_puts(buf, (char *)argv[idx]) != HBUF_OK ||
                 hbuf_puts(buf, " ") != HBUF_OK) {
             error = TD_ENOMEM;
