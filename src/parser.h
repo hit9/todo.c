@@ -33,7 +33,7 @@ typedef struct parser_result_st {
 
 /**
  * todo_t *todo = NULL;
- * parser_result_t *result = todo_parser(buf)
+ * parser_result_t *result = todo_parse(buf)
  *
  * if (result->error == TD_OK)
  *   todo = result->todo;

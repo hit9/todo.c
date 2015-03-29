@@ -22,10 +22,11 @@
 
 typedef enum {
     TD_OK = 0,
-    TD_EIO = 1,
-    TD_ENOMEM = 2,
-    TD_ENOTFOUND = 3,
-    TD_ESYNTAX = 4,
+    TD_EIOR = 1,
+    TD_EIOW = 2,
+    TD_ENOMEM = 3,
+    TD_ENOTFOUND = 4,
+    TD_ESYNTAX = 5,
 } td_error_t;
 
 #endif

@@ -28,63 +28,35 @@
 
 #define VERSION "0.2.4"
 
-const char *try_txt();
-void show_help();
-void print_task(task_t *, size_t);
+#define TD_EMSG_NOMEM "No memory"
+#define TD_EMSG_IOR "Error to read %s"
+#define TD_EMSG_IOW "Error to write %s"
 
+void td_emsg(const char *, ...);
+void td_exit(int, const char *, ...);
+void td_help();
+int td_task_print(task_t *);
+int td_try_txt(hbuf_t *);
+int td_try_read(hbuf_t *);
+int td_try_parse(parser_result_t **);
 
-int main(int argc, const char *argv[])
+void
+td_emsg(const char *fmt, ...)
 {
-    const char *path = try_txt();
-
-    hbuf_t *buf = hbuf_new(FILE_READ_BUF_UNIT);
-
-    if (file_read(buf, path) == TD_OK) {
-    }
-
-    parser_result_t *res = todo_parse(buf);
-
-    if (res->error == TD_OK) {
-        task_t *task = res->todo->head;
-        size_t idx = 1;
-
-        while (task != NULL) {
-            print_task(task, idx);
-            task = task->next;
-            idx += 1;
-        }
-    }
-
-    free(buf);
-    show_help();
-    return 0;
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
 }
 
-// need free: wordfree(&exp_r)
-const char *try_txt()
+int
+td_exit(int code)
 {
-    const char *home_txt = "~/todo.txt";
-    const char *curr_txt = "./todo.txt";
-
-    // find abspath for home_txt
-    wordexp_t exp_r;
-    wordexp(home_txt, &exp_r, 0);
-    const char *home_txt_ = exp_r.we_wordv[0];
-
-    if (file_exists(curr_txt))
-        return curr_txt;
-
-    if (file_exists(home_txt_))
-        return home_txt_;
-
-    if (file_touch(home_txt_))
-        return home_txt_;
-
-    return NULL;  // EIO
+    exit(code);
 }
 
 void
-show_help()
+td_help()
 {
     println("Usage:");
     println("  todo [-h|-v|-a]");
@@ -100,13 +72,13 @@ show_help()
     println("  clear all tasks  -  todo clear");
 }
 
-void
-print_task(task_t *task, size_t idx)
+int
+td_task_print(task_t *task)
 {
     hbuf_t *buf = hbuf_new(BUF_UNIT);
 
     if (buf == NULL)
-        return;
+        return TD_ENOMEM;
 
     int color = red;
     char *mask = "✖";
@@ -120,4 +92,92 @@ print_task(task_t *task, size_t idx)
             idx, color, mask, hbuf_str(task->data));
     hbuf_print(buf);
     hbuf_free(buf);
+    return TD_OK;
+}
+
+int
+td_try_txt(hbuf_t *buf)
+{
+    assert(buf != NULL);
+
+    const char *htxt = "~/todo.txt";
+    const char *ctxt = "./todo.txt";
+
+    if (file_exists(ctxt)) {
+        if (hbuf_puts(buf, ctxt) != HBUF_OK)
+            return TD_ENOMEM;
+    } else {
+        wordexp_t exp_r;
+        wordexp(htxt, &exp_r, 0);
+        char *path = exp_r.we_wordv[0];
+
+        if (!file_exists(path) && !file_touch(path)) {
+            wordfree(&exp_r);
+            return TD_EIOW;
+        }
+
+        if (hbuf_puts(buf, path) != HBUF_OK) {
+            wordfree(&exp_r);
+            return TD_ENOMEM;
+        }
+    }
+    return TD_OK;
+}
+
+int
+td_try_read(hbuf_t *buf)
+{
+    assert(buf != NULL);
+
+    hbuf_t *path = hbuf_new(BUF_UNIT);
+
+    if (path == NULL)
+        return TD_ENOMEM;
+
+    int error = td_try_txt(path);
+
+    switch (error) {
+        case TD_OK:
+            error = file_read(buf, hbuf_str(path));
+            break;
+        case TD_ENOMEM:
+            td_emsg(TD_EMSG_NOMEM);
+            hbuf_free(path);
+            td_exit(TD_ENOMEM);
+        case TD_EIOW:
+            td_emsg(TD_EMSG_IOW, hbuf_str(path));
+            hbuf_free(path);
+            td_exit(TD_EIOW);
+    }
+
+    hbuf_free(path);
+    return error;
+}
+
+int
+td_try_parse(parser_result_t **res)
+{
+    hbuf_t *buf = hbuf_new(FILE_READ_BUF_UNIT);
+
+    if (buf == NULL)
+        return TD_ENOMEM;
+
+    int error = td_try_read(buf);
+
+    switch (error) {
+        case TD_OK:
+            *res = todo_parse(buf);
+            break;
+        case TD_ENOMEM:
+            td_emsg(TD_EMSG_NOMEM);
+            hbuf_free(buf);
+            td_exit(TD_ENOMEM);
+        case TD_EIOR:
+            td_emsg(TD_EMSG_IOR, hbuf_str(buf));
+            hbuf_free(buf);
+            td_exit(TD_EIOR);
+    }
+
+    hbuf_free(buf);
+    return error;
 }

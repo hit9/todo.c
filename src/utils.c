@@ -49,7 +49,7 @@ file_read(hbuf_t *buf, const char *path)
     FILE *fp = fopen(path, "r");
 
     if (fp == NULL)
-        return TD_EIO;
+        return TD_EIOR;
 
     int bytes;
 
