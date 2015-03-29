@@ -70,6 +70,29 @@ file_read(hbuf_t *buf, const char *path)
     return TD_OK;
 }
 
+
+/**
+ * Write buffter to file.
+ */
+int
+file_write(const char *path, hbuf_t *buf)
+{
+    assert(buf != NULL);
+
+    FILE *fp = fopen(path, "w");
+
+    if (fp == NULL)
+        return TD_EIOW;
+
+    if (fwrite(buf->data, sizeof(uint8_t), buf->size, fp) != buf->size) {
+        fclose(fp);
+        return TD_EIOW;
+    }
+
+    fclose(fp);
+    return TD_OK;
+}
+
 void
 println(const char *str)
 {

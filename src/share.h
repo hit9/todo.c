@@ -19,6 +19,7 @@
 
 #define BUF_UNIT 128
 #define FILE_READ_BUF_UNIT 1024
+#define FILE_WRITE_BUF_UNIT 128
 
 typedef enum {
     TD_OK = 0,
