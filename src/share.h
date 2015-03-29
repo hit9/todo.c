@@ -14,15 +14,21 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef GENERATOR_H
-#define GENERATOR_H
+#ifndef SHARE_H
+#define SHARE_H
 
-#include <assert.h>
+#define BUF_UNIT 128
+#define FILE_READ_BUF_UNIT 1024
+#define FILE_WRITE_BUF_UNIT 128
 
-#include "share.h"
-#include "hbuf.h"
-#include "todo.h"
-
-hbuf_t *todo_generate(todo_t *);
+typedef enum {
+    TD_OK = 0,
+    TD_EIOR = 1,
+    TD_EIOW = 2,
+    TD_ENOMEM = 3,
+    TD_ESYNTAX = 4,
+    TD_ENOTFOUND = 5,
+    TD_EINVALIDIDX = 6,
+} td_error_t;
 
 #endif

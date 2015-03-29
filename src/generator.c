@@ -1,56 +1,41 @@
-/*
- * Copyright (c) 2013, hit9
+/**
+ * Copyright (c) 2015, Chao Wang (hit9 <hit9@icloud.com>)
  *
- * All rights reserved.
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
  *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- *     * Redistributions of source code must retain the above copyright notice,
- *       this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
- * OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 #include "generator.h"
 
-#include <stdio.h>
-
-/*
- * generate todo `td` to buffer `buf`
- * for each task, its string format performs like this:
- *   - [ ] 'xxxx'
- */
-void
-todo_generate(todo_t *td, buf_t *buf)
+hbuf_t *
+todo_generate(todo_t *todo)
 {
-    task_t *t;
-    size_t b_size = 7 * sizeof(uint8_t), /* the minimal length of task's string format: "- [ ] \n" */
-           sz;  /* record each task's size */
-    uint8_t *ptr = 0;  /* current data pointer */
+    assert(todo != NULL);
 
-    for (t = td->head; t; t = t->next) {
-        /* caculate the required size */
-        sz = b_size + t->c_size ;
+    hbuf_t *buf = hbuf_new(BUF_UNIT);
 
-        /* grow more `sz` size memory to append the new task */
-        buf_grow(buf, buf->size + sz);
-        /* get current data tail pointer */
-        ptr = buf->data + buf->size;
-        sprintf(ptr, "- [%c] %.*s\n", t->state == done ? 'x' : ' ', (int)t->c_size, t->content);
-        buf->size += sz;
+    if (buf == NULL)
+        return NULL;
+
+    task_t *task = todo->head;
+
+    while (task != NULL) {
+        if (hbuf_sprintf(buf, "- [%c] %.*s\n",
+                task->state == done ? 'x' : ' ',
+                task->data->size,
+                task->data->data) != HBUF_OK)
+            return NULL;
+
+        task = task->next;
     }
+    return buf;
 }

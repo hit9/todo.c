@@ -5,3 +5,4 @@ main
 todo
 todo.log
 *.o
+*.out

@@ -1,9 +1,9 @@
 todo.c
 ------
 
-Command line lightweight todo tool with readable storage, written in C
+Command line lightweight todo tool with readable storage, written in C.
 
-latest version: v0.2.3
+latest version: v0.2.4
 
 ![](screen-shot.png)
 
@@ -31,10 +31,10 @@ Examples:
   add a task       -  todo Go shopping
   check a task     -  todo 1 done
   undo a task      -  todo 1 undo
-  remove a task    -  todo 1 remove
+  remove a task    -  todo 1 rm/remove
   list undo tasks  -  todo
   list all tasks   -  todo --all
-  clear done tasks -  todo cleanup
+  clear done tasks -  todo clean/cleanup
   clear all tasks  -  todo clear
 ```
 
@@ -60,6 +60,11 @@ FAQ
 - Why C language? - I just want to write some C code that time.
 - Why not only `~/todo.txt`? - I need different todos for different projects.
 - What is this tool created for? - I can manage tasks in my terminal, and read it anywhere(for instance, on github.com).
+
+Contributors
+------------
+
+https://github.com/hit9/todo.c/graphs/contributors
 
 Thanks
 ------

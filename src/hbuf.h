@@ -14,36 +14,53 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef UTILS_H
-#define UTILS_H
+
+#ifndef __HBUF_H
+#define __HBUF_H
 
 #include <assert.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
-#include "share.h"
-#include "hbuf.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define HBUF_MAX_SIZE 16 * 1024 * 1024  //16mb
 
 typedef enum {
-    black   = 30,
-    red     = 31,
-    green   = 32,
-    yellow  = 33,
-    blue    = 34,
-    magenta = 35,
-    cyan    = 36,
-    white   = 37,
-} color_t;
+    HBUF_OK = 0,
+    HBUF_ENOMEM = 1,
+    HBUF_EFAILED = 2,
+} hbuf_error_t;
 
-int file_exists(const char *);
-int file_touch(const char *);
-int file_read(hbuf_t *, const char *);
-int file_write(const char *, hbuf_t *);
-void println(const char *, ...);
-int is_int_like(const char *);
-int str2int(const char *);
+typedef struct hbuf_st {
+    uint8_t *data;      /* real data */
+    size_t size;        /* real data size */
+    size_t cap;         /* buf cap */
+    size_t unit;        /* reallocation unit size */
+} hbuf_t;
+
+
+hbuf_t *hbuf_new(size_t);
+void hbuf_free(hbuf_t *);
+void hbuf_clear(hbuf_t *);
+int hbuf_grow(hbuf_t *, size_t);
+char *hbuf_str(hbuf_t *);
+void hbuf_print(hbuf_t *);
+void hbuf_println(hbuf_t *);
+int hbuf_put(hbuf_t *, uint8_t *, size_t);
+int hbuf_putc(hbuf_t *, char);
+int hbuf_puts(hbuf_t *, char *);
+void hbuf_lrm(hbuf_t *, size_t);
+void hbuf_rrm(hbuf_t *, size_t);
+int hbuf_sprintf(hbuf_t *, const char *, ...);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

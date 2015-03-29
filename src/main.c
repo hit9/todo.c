@@ -1,35 +1,18 @@
-/*
- * Copyright (c) 2013, hit9
+/**
+ * Copyright (c) 2015, Chao Wang (hit9 <hit9@icloud.com>)
  *
- * All rights reserved.
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
  *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- *     * Redistributions of source code must retain the above copyright notice,
- *       this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
- * OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
-#include "buffer.h"
-#include "todo.h"
-#include "utils.h"
-#include "parser.h"
-#include "generator.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,293 +20,439 @@
 #include <unistd.h>
 #include <wordexp.h>
 
-#define UNIT 1024
-#define VERSION "0.2.3"
+#include "hbuf.h"
+#include "todo.h"
+#include "utils.h"
+#include "parser.h"
+#include "generator.h"
 
-/* show usage */
-void show_help();
+#ifdef __linux
+#include <mcheck.h>
+#endif
 
-/* list all tasks */
-void ls_tasks(todo_t *);
+#define TD_VERSION "0.2.4"
 
-/* print single task */
-void print_task(task_t *, int);
+#define TD_EMSG_NOMEM       "no memory"
+#define TD_EMSG_IOR         "error to read %s"
+#define TD_EMSG_IOW         "error to write %s"
+#define TD_EMSG_SYNTAX      "syntax error at line %lu"
+#define TD_EMSG_NOTFOUND    "task %lu not found"
+#define TD_EMSG_INVALIDIDX  "invalid task index %d"
 
-/* print all undo tasks */
-void ls_undo_tasks(todo_t *);
+void td_emsg(const char *, ...);
+void td_exit(int);
+void td_help(void);
+void td_version(void);
+hbuf_t *td_try_txt();
+hbuf_t *td_try_read(hbuf_t *);
+todo_t *td_try_parse(hbuf_t *);
+void td_try_write(hbuf_t *, todo_t *);
+void td_task_print(task_t *, size_t);
+void td_ls_all(todo_t *);
+void td_ls_undo(todo_t *);
+void td_try_idx(todo_t *, int);
 
-typedef enum {
-    RE_OK = 0,
-    RE_IO_ERROR = 1,      /* errors in IO*/
-    RE_ID_ERROR = 2,      /* Invalid id */
-    RE_SYNTAX_ERROR = 3,  /* Syntax error */
-} return_codes;
-
-
-/* main: cli interface */
-int
-main(int argc, const char *argv[])
+int main(int argc, const char *argv[])
 {
 
-    /* main's return code */
-    int rt = RE_OK;
+#ifdef __linux
+    mtrace();
+#endif
 
-    /*
-     * use ./todo.txt prior to ~/todo.txt for persistent storage
-     */
+    hbuf_t *path = td_try_txt();
+    todo_t *todo = td_try_parse(path);
 
-    /* find path ~/todo.txt */
-    wordexp_t exp_r;
-    wordexp("~/todo.txt", &exp_r, 0);
-    uint8_t *h_todo_txt = exp_r.we_wordv[0];
+    int error = TD_OK;
 
-    FILE *fp;
-    uint8_t c_todo_txt[11] = "./todo.txt"; /* current dir todo.txt */
-    uint8_t *todo_txt = 0;
+    switch (argc) {
+        case 1:
+            goto _ls_undo;
+        case 2:
+            if (0 == strcmp(argv[1], "-h") ||
+                    0 == strcmp(argv[1], "--help"))
+                goto _help;
+            else if (0 == strcmp(argv[1], "-v") ||
+                    0 == strcmp(argv[1], "--version"))
+                goto _version;
+            else if (0 == strcmp(argv[1], "-a") ||
+                    0 == strcmp(argv[1], "--all"))
+                goto _ls_all;
+            else if (0 == strcmp(argv[1], "clear"))
+                goto _clear;
+            else if (0 == strcmp(argv[1], "cleanup") ||
+                    0 == strcmp(argv[1], "clean"))
+                goto _cleanup;
+            else if (is_int_like(argv[1]))
+                goto _idx;
+            else
+                goto _add;
+        case 3:
+            if (is_int_like(argv[1]))
+                goto _idx;
+            else
+                goto _add;
+        default:
+            goto _add;
+    }
 
-    if (access(c_todo_txt, F_OK) != -1) {
-        /* ./todo.txt exists */
-        todo_txt = c_todo_txt;
+_help:
+    td_help();
+    goto _exit;
+
+_version:
+    td_version();
+    goto _exit;
+
+_clear:
+    todo_clear(todo);
+    td_try_write(path, todo);
+    goto _exit;
+
+_cleanup:
+    todo_clean(todo);
+    td_try_write(path, todo);
+    goto _exit;
+
+_ls_all:
+    td_ls_all(todo);
+    goto _exit;
+
+_ls_undo:
+    td_ls_undo(todo);
+    goto _exit;
+
+_idx:
+{
+    int idx = str2int(argv[1]);
+
+    if (idx < 1) {
+        error = TD_EINVALIDIDX;
+        td_emsg(TD_EMSG_INVALIDIDX, idx);
+        goto _exit;
+    }
+
+    task_t *task = todo_get(todo, (size_t)(idx - 1));
+
+    if (task == NULL) {
+        error = TD_ENOTFOUND;
+        td_emsg(TD_EMSG_NOTFOUND, idx);
+        goto _exit;
+    }
+
+    if (argc == 2) {
+        td_task_print(task, idx);
+        goto _exit;
+    } else if (argc == 3) {
+        if (0 == strcmp(argv[2], "done"))
+            goto _done;
+        else if (0 == strcmp(argv[2], "undo"))
+            goto _undo;
+        else if (0 == strcmp(argv[2], "remove") ||
+                0 == strcmp(argv[2], "rm"))
+            goto _remove;
+        else
+            goto _help;
+    }
+
+_done:
+    task->state = done;
+    td_try_write(path, todo);
+    goto _exit;
+
+_undo:
+    task->state = undo;
+    td_try_write(path, todo);
+    goto _exit;
+
+_remove:
+    todo_pop(todo, idx - 1);
+    td_try_write(path, todo);
+    goto _exit;
+}
+
+_add:
+{
+    assert(argc > 1);
+
+    hbuf_t *buf = hbuf_new(BUF_UNIT);
+
+    int idx;
+
+    for (idx = 1; idx < argc; idx++) {
+        if (hbuf_puts(buf, (char *)argv[idx]) != HBUF_OK) {
+            error = TD_ENOMEM;
+            td_emsg(TD_EMSG_NOMEM);
+            goto _exit;
+        }
+
+        if (idx + 1 < argc) {
+            if (hbuf_putc(buf, ' ') != HBUF_OK) {
+                error = TD_ENOMEM;
+                td_emsg(TD_EMSG_NOMEM);
+                goto _exit;
+            }
+        }
+    }
+
+    task_t *task = task_new(undo, buf->data, buf->size);
+
+    if (task == NULL) {
+        error = TD_ENOMEM;
+        td_emsg(TD_EMSG_NOMEM);
+        goto _exit;
+    }
+
+    todo_push(todo, task);
+    hbuf_free(buf);
+
+    td_try_write(path, todo);
+    goto _exit;
+}
+
+_exit:
+    todo_free(todo);
+    hbuf_free(path);
+    return error;
+}
+
+void
+td_emsg(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+}
+
+void
+td_exit(int code)
+{
+    exit(code);
+}
+
+void
+td_version(void)
+{
+    println("todo@%s", TD_VERSION);
+}
+
+void
+td_help(void)
+{
+    println("Usage:");
+    println("  todo [-h|-v|-a]");
+    println("  todo (<id> [done|undo|remove])|<task>..");
+    println("");
+    println("Examples:");
+    println("  add a task       -  todo Go shopping");
+    println("  check a task     -  todo 1 done");
+    println("  undo a task      -  todo 1 undo");
+    println("  remove a task    -  todo 1 rm/remove");
+    println("  list undo tasks  -  todo");
+    println("  list all tasks   -  todo --all");
+    println("  clear done tasks -  todo clean/cleanup");
+    println("  clear all tasks  -  todo clear");
+    println("");
+    println("GitHub: https://github.com/hit9/todo.c <hit9@icloud.com>");
+}
+
+void
+td_task_print(task_t *task, size_t idx)
+{
+    hbuf_t *buf = hbuf_new(BUF_UNIT);
+
+    if (buf == NULL) {
+        td_emsg(TD_EMSG_NOMEM);
+        td_exit(TD_ENOMEM);
+    }
+
+    int color = red;
+    char *mask = "✖";
+
+    if (task->state == done) {
+        color = green;
+        mask = "✓";
+    }
+
+    hbuf_sprintf(buf, "%lu. \033[%dm%s\033[0m %s\n",
+            idx, color, mask, hbuf_str(task->data));
+    hbuf_print(buf);
+    hbuf_free(buf);
+}
+
+hbuf_t *
+td_try_txt()
+{
+    const char *htxt = "~/todo.txt";
+    const char *ctxt = "./todo.txt";
+
+    hbuf_t *buf = hbuf_new(BUF_UNIT);
+
+    if (buf == NULL) {
+        td_emsg(TD_EMSG_NOMEM);
+        td_exit(TD_ENOMEM);
+    }
+
+    if (file_exists(ctxt)) {
+        if (hbuf_puts(buf, (char *)ctxt) != HBUF_OK) {
+            td_emsg(TD_EMSG_NOMEM);
+            hbuf_free(buf);
+            td_exit(TD_ENOMEM);
+        }
     } else {
-        /* ./todo.txt dosen't exist, use ~/.todo.txt instead */
-        todo_txt = h_todo_txt;
+        wordexp_t exp_r;
+        wordexp(htxt, &exp_r, 0);
+        char *path = exp_r.we_wordv[0];
 
-        if (access(todo_txt, F_OK) == -1) {
-            /* the ~/.todo.txt does not exist, new one */
-            fp = fopen(todo_txt, "w");
-            fclose(fp);
+        if (!file_exists(path) && !file_touch(path)) {
+            td_emsg(TD_EMSG_IOW, path);
+            hbuf_free(buf);
+            wordfree(&exp_r);
+            td_exit(TD_EIOW);
         }
 
-    }
-
-    /*
-     * try read file todo_txt
-     */
-
-    buf_t * buf;
-    size_t ret;
-
-    buf = buf_new(UNIT);
-
-    if (!(fp = fopen(todo_txt, "r"))) {
-        printf("failed to open file '%s'\n", todo_txt);
-        exit(RE_IO_ERROR);
-    }
-
-    /* read file todo_txt */
-
-    buf_grow(buf, UNIT);
-
-    while (
-            (ret = fread(buf->data + buf->size, sizeof(uint8_t), buf->a_size - buf->size, fp)) > 0
-    ) {
-        buf->size += ret;
-        buf_grow(buf, buf->size + UNIT);
-    }
-
-    fclose(fp);
-
-    /*
-     * parse read content to todo struct
-     */
-
-    todo_t *td = todo_new();
-
-    /* re: parsing result , 0: success */
-    unsigned int error_line = todo_parse(td, buf->data, buf->size);
-
-    if (0 == error_line) {  // success parsed
-
-        /*
-         * parse arguments
-         */
-        switch (argc) {
-
-            case 1:
-                /* no extra arguments, list all undone tasks */
-                ls_undo_tasks(td);
-                break;
-
-            case 2:
-                if (0 == strcmp(argv[1], "clear")) { /* clear todo */
-                    todo_clear(td);
-                    break;
-                } else if (0 == strcmp(argv[1], "cleanup")) { /* remove done tasks */
-                    todo_cleanup(td);
-                    break;
-                } else if(0 == strcmp(argv[1], "-a") ||
-                        0 == strcmp(argv[1], "--all")) { /* list all tasks */
-                    ls_tasks(td);
-                    break;
-                } else if (0 == strcmp(argv[1], "-h") ||
-                        0 == strcmp(argv[1], "--help")) { /* show help message */
-                    show_help();
-                    break;
-                } else if (0 == strcmp(argv[1], "-v") ||
-                        0 == strcmp(argv[1], "--version")) { /* show version */
-                    printf("todo version: %s\n", VERSION);
-                    break;
-                }
-            case 3:
-            {
-                /* try to convert to integer */
-                char *p;
-                int idx = (int) strtol(argv[1], &p, 10);
-
-                if (*p == '\0') {  /* argv[1] is integer like */
-
-                    task_t *tsk = todo_get(td, idx-1);
-
-                    if (tsk) {
-
-                        if (argc == 2){  /* display this task */
-                            print_task(tsk, idx);
-                        } else if (argc == 3) {
-                            /* check task done */
-                            if (0 == strcmp(argv[2], "done")) tsk->state = done;
-                            /* check task undo */
-                            else if (0 == strcmp(argv[2], "undo")) tsk->state = undo;
-                            /* remove task */
-                            else if (0 == strcmp(argv[2], "remove")) todo_pop(td, tsk);
-                            /* add this a new task */
-                            else
-                                goto add_task;
-                        }
-
-                    } else {  /* failed to get task, tsk is 0*/
-                        printf("task '%d' not found\n", idx);
-                        rt = RE_ID_ERROR;
-                    }
-
-                } else
-                    goto add_task;
-                break;
-            }
-        /* add new task */
-        add_task:
-            default:
-            {
-                buf_t *c_buf = buf_new(64);
-
-                /* join arguments with spaces */
-                space_join((uint8_t **)(argv + 1), argc - 1, c_buf);
-
-                task_t *new_tsk = task_new(c_buf->data, c_buf->size, undo);
-
-                todo_append(td, new_tsk);
-                /* free this buffer struct but not buf_free it.
-                 * the buf's data is freed when we free todo
-                 */
-                free(c_buf);
-                break;
-            }
+        if (hbuf_puts(buf, path) != HBUF_OK) {
+            td_emsg(TD_EMSG_NOMEM);
+            wordfree(&exp_r);
+            hbuf_free(buf);
+            td_exit(TD_ENOMEM);
         }
 
-        /*
-         * generate to str
-         */
-        buf_t *ob = buf_new(64);
+        wordfree(&exp_r);
+    }
+    return buf;
+}
 
-        todo_generate(td, ob);
+hbuf_t *
+td_try_read(hbuf_t *path)
+{
+    assert(path != NULL);
 
-        /* write to file todo_txt */
+    hbuf_t *buf = hbuf_new(FILE_READ_BUF_UNIT);
 
-        if (!(fp = fopen(todo_txt, "w"))) {
-
-            printf("failed to open '%s'\n", todo_txt);
-            rt = RE_IO_ERROR;
-
-        } else {
-
-            if (fwrite(ob->data, sizeof(uint8_t), ob->size, fp) != ob->size ) {
-                printf("failed to write '%s'\n", todo_txt);
-                rt = RE_IO_ERROR;
-            }
-
-            fclose(fp);
-        }
-
-        buf_free(ob);
-
-    } else {
-        /* error_line > 0, got syntax error in parsing process */
-        printf("syntax error at line %d\n", error_line);
-        rt = RE_SYNTAX_ERROR;
+    if (buf == NULL) {
+        td_emsg(TD_EMSG_NOMEM);
+        hbuf_free(path);
+        td_exit(TD_ENOMEM);
     }
 
-    /* clean up allocated memory */
-    todo_free(td);
-    buf_free(buf);
-    wordfree(&exp_r);
-    return rt;
+    switch (file_read(buf, (const char *)hbuf_str(path))) {
+        case TD_ENOMEM:
+            td_emsg(TD_EMSG_NOMEM);
+            hbuf_free(buf);
+            hbuf_free(path);
+            td_exit(TD_ENOMEM);
+        case TD_EIOR:
+            td_emsg(TD_EMSG_IOR, hbuf_str(path));
+            hbuf_free(buf);
+            hbuf_free(path);
+            td_exit(TD_ENOMEM);
+        case TD_OK:
+            break;  // defer release `path`
+    }
+
+    return buf;
 }
 
-/* show help message */
-void
-show_help()
+todo_t *
+td_try_parse(hbuf_t *path)
 {
-    printf("Usage:\n");
-    printf("  todo [-h|-v|-a]\n");
-    printf("  todo (<id> [done|undo|remove])|<task>...\n");
-    printf("Examples:\n");
-    printf("  add a task       -  todo Go shopping\n");
-    printf("  check a task     -  todo 1 done\n");
-    printf("  undo a task      -  todo 1 undo\n");
-    printf("  remove a task    -  todo 1 remove\n");
-    printf("  list undo tasks  -  todo\n");
-    printf("  list all tasks   -  todo --all\n");
-    printf("  clear done tasks -  todo cleanup\n");
-    printf("  clear all tasks  -  todo clear\n");
-    printf("Have found a bug? Please let me know: https://github.com/hit9/todo.c/issues\n");
+    assert(path != NULL);
+
+    hbuf_t *buf = td_try_read(path);
+
+    parser_result_t *res = todo_parse(buf);
+
+    if (res == NULL) {
+        td_emsg(TD_EMSG_NOMEM);
+        td_exit(TD_ENOMEM);
+    }
+
+    todo_t *todo = NULL;
+
+    switch(res->error) {
+        case TD_ENOMEM:
+            td_emsg(TD_EMSG_NOMEM);
+            hbuf_free(buf);
+            parser_result_free(res);
+            hbuf_free(path);
+            td_exit(TD_ENOMEM);
+        case TD_ESYNTAX:
+            td_emsg(TD_EMSG_SYNTAX, res->lineno);
+            hbuf_free(buf);
+            parser_result_free(res);
+            hbuf_free(path);
+            td_exit(TD_ENOMEM);
+        case TD_OK:  // defer relase `path`
+            todo = res->todo;
+            hbuf_free(buf);
+            parser_result_free(res);
+    }
+    return todo;
 }
 
-/* list all tasks */
 void
-ls_tasks(todo_t *td)
+td_try_write(hbuf_t *path, todo_t *todo)
 {
+    assert(path != NULL);
+    assert(todo != NULL);
 
-    task_t *t;
-    int i;
+    hbuf_t *buf = todo_generate(todo);
 
-    for (i = 1, t = td->head; t; t = t->next, i++) {
-        print_task(t, i);
+    if (buf == NULL) {
+        td_emsg(TD_EMSG_NOMEM);
+        hbuf_free(buf);
+        todo_free(todo);
+        hbuf_free(path);
+        td_exit(TD_ENOMEM);
+    }
+
+    switch (file_write((const char *)hbuf_str(path), buf)) {
+        case TD_ENOMEM:
+            td_emsg(TD_EMSG_NOMEM);
+            hbuf_free(buf);
+            todo_free(todo);
+            hbuf_free(path);
+            td_exit(TD_ENOMEM);
+        case TD_EIOW:
+            td_emsg(TD_EMSG_IOW, hbuf_str(path));
+            hbuf_free(buf);
+            todo_free(todo);
+            hbuf_free(path);
+            td_exit(TD_EIOW);
+        case TD_OK:  // defer release `todo` & `path`
+            hbuf_free(buf);
+            break;
     }
 }
 
-/* list undo tasks */
 void
-ls_undo_tasks(todo_t *td)
+td_ls_all(todo_t *todo)
 {
+    assert(todo != NULL);
 
-    task_t *t;
-    int i;
+    task_t *task = todo->head;
+    size_t idx = 1;
 
-    for (i = 1, t = td->head; t; t = t->next, i++) {
-        if (t->state == undo)
-            print_task(t, i);
+    while (task != NULL) {
+        td_task_print(task, idx);
+        task = task->next;
+        idx += 1;
     }
 }
 
-
-/* print single task, the id is 1, 2, 3... (start from 1) */
 void
-print_task(task_t *t, int id)
+td_ls_undo(todo_t *todo)
 {
-    /* get state color. done: green; undo: red */
-    int color = t->state == done ? green : red;
+    assert(todo != NULL);
 
-    uint8_t *a = "✓";  /* sign: done */
-    uint8_t *b = "✖";  /* sign: undo */
+    task_t *task = todo->head;
+    size_t idx = 1;
 
-    size_t a_size = strlen(a);
-    size_t b_size = strlen(b);
-    size_t max_size = a_size > b_size ? a_size : b_size;
-
-    uint8_t *clr_st = colored(t->state == done ? a : b, max_size, color);
-
-    printf("%d. ", id);
-    printf("%s ", clr_st);
-    printf("%.*s\n", (int)t->c_size, t->content);
-
-    free(clr_st);
+    while (task != NULL) {
+        if (task->state == undo)
+            td_task_print(task, idx);
+        task = task->next;
+        idx += 1;
+    }
 }
