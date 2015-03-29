@@ -31,14 +31,15 @@
 #define TD_EMSG_NOMEM "No memory"
 #define TD_EMSG_IOR "Error to read %s"
 #define TD_EMSG_IOW "Error to write %s"
+#define TD_EMSG_SYNTAX "Syntax error at line %lu"
 
 void td_emsg(const char *, ...);
 void td_exit(int, const char *, ...);
 void td_help();
-int td_task_print(task_t *);
-int td_try_txt(hbuf_t *);
-int td_try_read(hbuf_t *);
-int td_try_parse(parser_result_t **);
+void td_task_print(task_t *);
+hbuf_t *td_try_txt();
+hbuf_t *td_try_read();
+todo_t *td_try_parse();
 
 void
 td_emsg(const char *fmt, ...)
@@ -49,7 +50,7 @@ td_emsg(const char *fmt, ...)
     va_end(args);
 }
 
-int
+void
 td_exit(int code)
 {
     exit(code);
@@ -72,13 +73,15 @@ td_help()
     println("  clear all tasks  -  todo clear");
 }
 
-int
+void
 td_task_print(task_t *task)
 {
     hbuf_t *buf = hbuf_new(BUF_UNIT);
 
-    if (buf == NULL)
-        return TD_ENOMEM;
+    if (buf == NULL) {
+        td_emsg(TD_EMSG_NOMEM);
+        td_exit(TD_ENOMEM);
+    }
 
     int color = red;
     char *mask = "✖";
@@ -92,92 +95,111 @@ td_task_print(task_t *task)
             idx, color, mask, hbuf_str(task->data));
     hbuf_print(buf);
     hbuf_free(buf);
-    return TD_OK;
 }
 
-int
-td_try_txt(hbuf_t *buf)
+hbuf_t *
+td_try_txt()
 {
-    assert(buf != NULL);
-
     const char *htxt = "~/todo.txt";
     const char *ctxt = "./todo.txt";
 
+    hbuf_t *buf = hbuf_new(BUF_UNIT);
+
+    if (buf == NULL) {
+        td_emsg(TD_EMSG_NOMEM);
+        td_exit(TD_ENOMEM);
+    }
+
     if (file_exists(ctxt)) {
-        if (hbuf_puts(buf, ctxt) != HBUF_OK)
-            return TD_ENOMEM;
+        if (hbuf_puts(buf, ctxt) != HBUF_OK) {
+            td_emsg(TD_EMSG_NOMEM);
+            hbuf_free(buf);
+            td_exit(TD_ENOMEM);
+        }
     } else {
         wordexp_t exp_r;
         wordexp(htxt, &exp_r, 0);
         char *path = exp_r.we_wordv[0];
 
         if (!file_exists(path) && !file_touch(path)) {
+            td_emsg(TD_EMSG_IOW, hbuf_str(path));
+            hbuf_free(buf);
             wordfree(&exp_r);
-            return TD_EIOW;
+            td_exit(TD_EIOW);
         }
 
         if (hbuf_puts(buf, path) != HBUF_OK) {
-            wordfree(&exp_r);
-            return TD_ENOMEM;
-        }
-    }
-    return TD_OK;
-}
-
-int
-td_try_read(hbuf_t *buf)
-{
-    assert(buf != NULL);
-
-    hbuf_t *path = hbuf_new(BUF_UNIT);
-
-    if (path == NULL)
-        return TD_ENOMEM;
-
-    int error = td_try_txt(path);
-
-    switch (error) {
-        case TD_OK:
-            error = file_read(buf, hbuf_str(path));
-            break;
-        case TD_ENOMEM:
             td_emsg(TD_EMSG_NOMEM);
-            hbuf_free(path);
+            wordfree(&exp_r);
+            hbuf_free(buf);
             td_exit(TD_ENOMEM);
-        case TD_EIOW:
-            td_emsg(TD_EMSG_IOW, hbuf_str(path));
-            hbuf_free(path);
-            td_exit(TD_EIOW);
-    }
+        }
 
-    hbuf_free(path);
-    return error;
+        wordfree(&exp_r);
+    }
+    return buf;
 }
 
-int
-td_try_parse(parser_result_t **res)
+hbuf_t *
+td_try_read()
 {
+    hbuf_t *path = td_try_txt();
+
     hbuf_t *buf = hbuf_new(FILE_READ_BUF_UNIT);
 
-    if (buf == NULL)
-        return TD_ENOMEM;
+    if (buf == NULL) {
+        td_emsg(TD_EMSG_NOMEM);
+        hbuf_free(path);
+        td_exit(TD_ENOMEM);
+    }
 
-    int error = td_try_read(buf);
-
-    switch (error) {
-        case TD_OK:
-            *res = todo_parse(buf);
-            break;
+    switch (file_read(buf, hbuf_str(path))) {
         case TD_ENOMEM:
             td_emsg(TD_EMSG_NOMEM);
             hbuf_free(buf);
+            hbuf_free(path);
             td_exit(TD_ENOMEM);
         case TD_EIOR:
-            td_emsg(TD_EMSG_IOR, hbuf_str(buf));
+            td_emsg(TD_EMSG_IOR, hbuf_str(path));
             hbuf_free(buf);
-            td_exit(TD_EIOR);
+            hbuf_free(path);
+            td_exit(TD_ENOMEM);
+        case TD_OK:
+            hbuf_free(path);
+            break;
     }
 
-    hbuf_free(buf);
-    return error;
+    return buf;
+}
+
+todo_t *
+td_try_parse()
+{
+    hbuf_t *buf = td_try_read();
+    parser_result_t *res = todo_parse(buf);
+
+    if (res == NULL) {
+        td_emsg(TD_EMSG_NOMEM);
+        td_exit(TD_ENOMEM);
+    }
+
+    switch(res->error) {
+        case TD_ENOMEM:
+            td_emsg(TD_EMSG_NOMEM);
+            hbuf_free(buf);
+            hbuf_free(res);
+            td_exit(TD_ENOMEM);
+        case TD_ESYNTAX:
+            td_emsg(TD_ESYNTAX, res->lineno);
+            hbuf_free(buf);
+            hbuf_free(res);
+            td_exit(TD_ENOMEM);
+        case TD_OK:
+            todo = res->todo;
+            hbuf_free(buf);
+            hbuf_free(res);
+            break;
+    }
+
+    return todo;
 }
