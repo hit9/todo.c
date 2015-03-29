@@ -3,7 +3,7 @@ NAME = todo
 INC = ./
 
 SRC =	main.c \
-	buffer.c \
+	hbuf.c \
 	generator.c \
 	parser.c \
 	todo.c \
@@ -20,4 +20,3 @@ all: $(NAME)
 
 clean:
 	rm -rf *.o todo
-
