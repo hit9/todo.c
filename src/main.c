@@ -39,21 +39,15 @@ void td_help();
 hbuf_t *td_try_txt();
 hbuf_t *td_try_read();
 todo_t *td_try_parse();
+void *td_try_write(todo_t *);
 void td_task_print(task_t *, size_t);
+void td_ls_all(todo_t *);
+void td_ls_undo(todo_t *);
 
 int main(int argc, const char *argv[])
 {
-    td_help();
     todo_t *todo = td_try_parse();
-    task_t *task = todo->head;
-    size_t idx = 1;
-
-    while (task != NULL) {
-        td_task_print(task, idx);
-        task = task->next;
-        idx += 1;
-    }
-
+    td_ls_undo(todo);
     todo_free(todo);
     return 0;
 }
@@ -223,4 +217,42 @@ td_try_parse()
             parser_result_free(res);
     }
     return todo;
+}
+
+void *
+td_try_write(todo_t *todo)
+{
+    assert(todo != NULL);
+
+}
+
+void
+td_ls_all(todo_t *todo)
+{
+    assert(todo != NULL);
+
+    task_t *task = todo->head;
+    size_t idx = 1;
+
+    while (task != NULL) {
+        td_task_print(task, idx);
+        task = task->next;
+        idx += 1;
+    }
+}
+
+void
+td_ls_undo(todo_t *todo)
+{
+    assert(todo != NULL);
+
+    task_t *task = todo->head;
+    size_t idx = 1;
+
+    while (task != NULL) {
+        if (task->state == undo)
+            td_task_print(task, idx);
+        task = task->next;
+        idx += 1;
+    }
 }
