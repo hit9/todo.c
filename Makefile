@@ -6,7 +6,7 @@ clean:
 
 install: compile
 	mv src/todo ~/.todo
-	@echo "*Note*: Add this line to your shell configuration (~/.bashrc or ~/.zshrc etc.)\n"
+	@echo "\n=====> Add the following line to your shell configuration <===== \n"
 	@echo "  alias todo=~/.todo"
 
 uninstall:
