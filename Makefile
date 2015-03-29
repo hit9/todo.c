@@ -13,3 +13,6 @@ uninstall:
 	rm -fr ~/.todo
 	@echo "You can now delete this line from your configuration (~/.bashrc or ~/.zshrc etc.)"
 	@echo "  alias todo=~/.todo"
+
+test:
+	make -C src/ test

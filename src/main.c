@@ -26,6 +26,10 @@
 #include "parser.h"
 #include "generator.h"
 
+#ifdef __linux
+#include <mcheck.h>
+#endif
+
 #define TD_VERSION "0.2.4"
 
 #define TD_EMSG_NOMEM       "no memory"
@@ -50,6 +54,11 @@ void td_try_idx(todo_t *, int);
 
 int main(int argc, const char *argv[])
 {
+
+#ifdef __linux
+    mtrace();
+#endif
+
     hbuf_t *path = td_try_txt();
     todo_t *todo = td_try_parse(path);
 
@@ -70,7 +79,8 @@ int main(int argc, const char *argv[])
                 goto _ls_all;
             else if (0 == strcmp(argv[1], "clear"))
                 goto _clear;
-            else if (0 == strcmp(argv[1], "cleanup"))
+            else if (0 == strcmp(argv[1], "cleanup") ||
+                    0 == strcmp(argv[1], "clean"))
                 goto _cleanup;
             else if (is_int_like(argv[1]))
                 goto _idx;
@@ -228,13 +238,13 @@ td_help(void)
     println("  add a task       -  todo Go shopping");
     println("  check a task     -  todo 1 done");
     println("  undo a task      -  todo 1 undo");
-    println("  remove a task    -  todo 1 remove");
+    println("  remove a task    -  todo 1 rm/remove");
     println("  list undo tasks  -  todo");
     println("  list all tasks   -  todo --all");
-    println("  clear done tasks -  todo cleanup");
+    println("  clear done tasks -  todo clean/cleanup");
     println("  clear all tasks  -  todo clear");
     println("");
-    println("GitHub: https://github.com/hit9/todo.c");
+    println("GitHub: https://github.com/hit9/todo.c <hit9@icloud.com>");
 }
 
 void
