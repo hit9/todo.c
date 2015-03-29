@@ -28,18 +28,34 @@
 
 #define VERSION "0.2.4"
 
-#define TD_EMSG_NOMEM "No memory"
-#define TD_EMSG_IOR "Error to read %s"
-#define TD_EMSG_IOW "Error to write %s"
-#define TD_EMSG_SYNTAX "Syntax error at line %lu"
+#define TD_EMSG_NOMEM       "no memory"
+#define TD_EMSG_IOR         "error to read %s"
+#define TD_EMSG_IOW         "error to write %s"
+#define TD_EMSG_SYNTAX      "syntax error at line %lu"
 
 void td_emsg(const char *, ...);
-void td_exit(int, const char *, ...);
+void td_exit(int);
 void td_help();
-void td_task_print(task_t *);
 hbuf_t *td_try_txt();
 hbuf_t *td_try_read();
 todo_t *td_try_parse();
+void td_task_print(task_t *, size_t);
+
+int main(int argc, const char *argv[])
+{
+    todo_t *todo = td_try_parse();
+    task_t *task = todo->head;
+    size_t idx = 1;
+
+    while (task != NULL) {
+        td_task_print(task, idx);
+        task = task->next;
+        idx += 1;
+    }
+
+    todo_free(todo);
+    return 0;
+}
 
 void
 td_emsg(const char *fmt, ...)
@@ -74,7 +90,7 @@ td_help()
 }
 
 void
-td_task_print(task_t *task)
+td_task_print(task_t *task, size_t idx)
 {
     hbuf_t *buf = hbuf_new(BUF_UNIT);
 
@@ -111,7 +127,7 @@ td_try_txt()
     }
 
     if (file_exists(ctxt)) {
-        if (hbuf_puts(buf, ctxt) != HBUF_OK) {
+        if (hbuf_puts(buf, (char *)ctxt) != HBUF_OK) {
             td_emsg(TD_EMSG_NOMEM);
             hbuf_free(buf);
             td_exit(TD_ENOMEM);
@@ -122,7 +138,7 @@ td_try_txt()
         char *path = exp_r.we_wordv[0];
 
         if (!file_exists(path) && !file_touch(path)) {
-            td_emsg(TD_EMSG_IOW, hbuf_str(path));
+            td_emsg(TD_EMSG_IOW, path);
             hbuf_free(buf);
             wordfree(&exp_r);
             td_exit(TD_EIOW);
@@ -183,23 +199,23 @@ td_try_parse()
         td_exit(TD_ENOMEM);
     }
 
+    todo_t *todo = NULL;
+
     switch(res->error) {
         case TD_ENOMEM:
             td_emsg(TD_EMSG_NOMEM);
             hbuf_free(buf);
-            hbuf_free(res);
+            parser_result_free(res);
             td_exit(TD_ENOMEM);
         case TD_ESYNTAX:
-            td_emsg(TD_ESYNTAX, res->lineno);
+            td_emsg(TD_EMSG_SYNTAX, res->lineno);
             hbuf_free(buf);
-            hbuf_free(res);
+            parser_result_free(res);
             td_exit(TD_ENOMEM);
         case TD_OK:
             todo = res->todo;
             hbuf_free(buf);
-            hbuf_free(res);
-            break;
+            parser_result_free(res);
     }
-
     return todo;
 }

@@ -25,8 +25,8 @@ typedef enum {
     TD_EIOR = 1,
     TD_EIOW = 2,
     TD_ENOMEM = 3,
-    TD_ENOTFOUND = 4,
-    TD_ESYNTAX = 5,
+    TD_ESYNTAX = 4,
+    TD_ENOTFOUND = 5,
 } td_error_t;
 
 #endif
