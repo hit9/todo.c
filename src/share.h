@@ -32,12 +32,12 @@ typedef enum {
 } td_error_t;
 
 static const char *td_emsgs[] = {
-    [TD_EIOR]         = "error to read %s",
-    [TD_EIOW]         = "error to write %s",
-    [TD_ENOMEM]       = "no memory",
-    [TD_ESYNTAX]      = "syntax error at line %lu",
-    [TD_ENOTFOUND]    = "task %lu not found",
-    [TD_EINVALIDIDX]  = "invalid task index %d",
+    [TD_EIOR]         = "error to read %s\n",
+    [TD_EIOW]         = "error to write %s\n",
+    [TD_ENOMEM]       = "no memory\n",
+    [TD_ESYNTAX]      = "syntax error at line %lu\n",
+    [TD_ENOTFOUND]    = "task %lu not found\n",
+    [TD_EINVALIDIDX]  = "invalid task index %d\n",
 };
 
 #endif

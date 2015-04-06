@@ -227,7 +227,7 @@ td_exit(int code)
 void
 td_version(void)
 {
-    println("todo@%s", TD_VERSION);
+    println("todo%s", TD_VERSION);
 }
 
 void
