@@ -3,7 +3,7 @@ todo.c
 
 Command line lightweight todo tool with readable storage, written in C.
 
-latest version: v0.2.4
+latest version: v0.2.5
 
 ![](screen-shot.png)
 

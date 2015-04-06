@@ -30,7 +30,7 @@
 #include <mcheck.h>
 #endif
 
-#define TD_VERSION "0.2.4"
+#define TD_VERSION "0.2.5"
 
 #define TD_EMSG_NOMEM       "no memory"
 #define TD_EMSG_IOR         "error to read %s"
