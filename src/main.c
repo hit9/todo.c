@@ -30,7 +30,7 @@
 #include <mcheck.h>
 #endif
 
-#define TD_VERSION "0.2.5"
+#define TD_VERSION "0.2.6"
 
 void td_emsg(int, ...);
 void td_exit(int);
