@@ -41,6 +41,7 @@ hbuf_t *td_try_read(hbuf_t *);
 todo_t *td_try_parse(hbuf_t *);
 void td_try_write(hbuf_t *, todo_t *);
 void td_task_print(task_t *, size_t);
+void td_removed_print(hbuf_t *);
 void td_ls_all(todo_t *);
 void td_ls_undo(todo_t *);
 void td_try_idx(todo_t *, int);
@@ -150,17 +151,26 @@ _idx:
 _done:
     task->state = done;
     td_try_write(path, todo);
+    td_task_print(task, idx);
     goto _exit;
 
 _undo:
     task->state = undo;
     td_try_write(path, todo);
+    td_task_print(task, idx);
     goto _exit;
 
 _remove:
+{
+    hbuf_t *buf = hbuf_new(BUF_UNIT);
+    task_t *task = todo_get(todo, idx - 1);
+    hbuf_put(buf, task->data->data, task->data->size);
     todo_pop(todo, idx - 1);
     td_try_write(path, todo);
+    td_removed_print(buf);
+    hbuf_free(buf);
     goto _exit;
+}
 }
 
 _add:
@@ -199,6 +209,7 @@ _add:
     hbuf_free(buf);
 
     td_try_write(path, todo);
+    td_task_print(task, todo_size(todo));
     goto _exit;
 }
 
@@ -248,6 +259,15 @@ td_help(void)
     println("  clear all tasks  -  todo clear");
     println("");
     println("GitHub: https://github.com/hit9/todo.c <hit9@icloud.com>");
+}
+
+void
+td_removed_print(hbuf_t *buf) {
+    hbuf_t *buf_ = hbuf_new(BUF_UNIT);
+    hbuf_sprintf(buf_, "\033[%dm%s\033[0m %s",
+            white, "-", hbuf_str(buf));
+    hbuf_println(buf_);
+    hbuf_free(buf_);
 }
 
 void

@@ -1,3 +1,2 @@
 - [ ] Go Shopping
 - [ ] Clean the room
-- [ ] g st
