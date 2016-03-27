@@ -1,0 +1,83 @@
+#
+# Unix manual page for todo(1) in Perl POD format. Use pod2man(1) to
+# translate this document to troff format suitable for manual pages.
+# 
+
+=head1 NAME
+
+todo - simple command line todo manager
+
+=head1 SYNOPSIS
+
+B<todo> I<task>
+
+B<todo> I<id> [B<done>|B<undo>|B<remove>]
+
+B<todo> B<-h>|B<-v>|B<-a>
+
+=head1 DESCRIPTION
+
+B<todo> manages a list of todo items. Items can be added, listed, marked
+as completed, and removed. Items are stored in a file F<.todo.txt> in
+the current directory or, if none is present, the home directory. All
+output goes to standard output.
+
+=head1 ARGUMENTS AND OPTIONS
+
+=over 4
+
+=item I<task>
+
+Add I<task> to todo list.
+
+=item I<-a>
+
+List all todo items. Each item is listed with an I<id> that can be used
+in other commands.
+
+=item I<id>
+
+Emit task I<id> to stdout.
+
+=item I<id> B<done>
+
+Mark task I<id> as done.
+
+=item I<id> B<undo>.
+
+Mark task I<id> as to be done.
+
+=item I<id> B<remove>
+
+Remove task I<id>
+
+=item B<-v>
+
+Emit version number.
+
+=item B<-h>
+
+Emit help message.
+
+=back
+
+=head1 FILES
+
+Items are stored in a file F<.todo.txt> in the current directory if such a
+file is already present, or in the home directory, otherwise. 
+
+=head1 EXIT CODE AND DIAGNOSTICS
+
+The exit code is zero for success and positive in the case of errors.
+Error messages are emitted to standard error.
+
+=head1 AUTHOR
+
+Chao Wang <hit9@icloud.com>. The source code is
+available from L<https://github.com/hit9/todo.c>.
+
+=head1 LICENSE
+
+This program is licensed under the BSD-3 Open Source
+License.
+
