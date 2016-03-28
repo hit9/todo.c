@@ -4,6 +4,6 @@ test*
 main
 todo
 todo.log
-.1
+*.1
 *.o
 *.out
