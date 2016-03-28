@@ -12,11 +12,13 @@ Installation
 
     make install
 
-This command will install `todo` to `~/.todo`.
+This command will install `todo` to `$HOME/bin` and the manual page to
+`$HOME/man/man1`.
 
-Next, add the following line to your shell's configuration(~/.bashrc or ~/.zshrc etc.):
+If you want to install into some other place than `$HOME`, invoke `make`
+with a prefix or edit the `Makefile`:
 
-    alias todo=~/.todo
+    make PREFIX=/usr/local install
 
 Usage
 -----
@@ -38,6 +40,11 @@ Examples:
   clear all tasks  -  todo clear
 ```
 
+See also the Unix manual page: 
+
+    man todo
+
+
 Storage
 -------
 
@@ -56,6 +63,10 @@ The storage format is readable, it's the [GitHub Flavored Markdown Task list](ht
 
 Manual
 ------
+
+The manual is installed into `$(HOME)/man/man1` by default. Provided
+your `man` command is configured correctly, invoking `man todo` should
+show it.
 
 ```bash
 make todo.1
