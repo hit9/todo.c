@@ -1,5 +1,5 @@
 #
-# invoke as "make PREFIX=/usr/local" to override PREFIX
+# invoke as "make PREFIX=/usr/local install" to override PREFIX
 # 
 
 PREFIX   	= $(HOME)
@@ -17,8 +17,8 @@ clean:
 		rm -f todo.1
 
 dirs:
-		test -d $(BINDIR)  || echo "missing $(BINDIR)"
-		test -d $(MAN1DIR) || echo "mssing $(MAN1DIR)"
+		test -d $(BINDIR)
+		test -d $(MAN1DIR)
 
 install: compile dirs todo.1
 		install src/todo $(BINDIR)
