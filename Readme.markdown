@@ -54,6 +54,15 @@ The storage format is readable, it's the [GitHub Flavored Markdown Task list](ht
 - [ ] Clean the room
 ```
 
+Manual
+------
+
+```bash
+make todo.1
+man ./todo.1
+```
+
+
 FAQ
 ---
 
