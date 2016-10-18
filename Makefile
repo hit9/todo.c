@@ -16,12 +16,11 @@ clean:
 		$(MAKE) -C src/ clean
 		rm -f todo.1
 
-dirs:
-		test -d $(BINDIR)
-		test -d $(MAN1DIR)
 
-install: compile dirs todo.1
+install: compile todo.1
+		install -d $(BINDIR)
 		install src/todo $(BINDIR)
+		install -d $(MAN1DIR)
 		install todo.1 $(MAN1DIR)
 
 uninstall:
